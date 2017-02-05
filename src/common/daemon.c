@@ -27,22 +27,138 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include "initd.h"
+#include "daemon.h"
 
-static int running = 0;
-static int counter = 0;
-static char *conf_file_name = NULL;
-static char *pid_file_name = NULL;
-static int pid_fd = -1;
-static char *app_name = NULL;
-static FILE *log_stream;
+
+/*
+ *  Callback function for handling signals.
+ * 	sig	identifier of signal
+ */
+static void handle_signal(int sig)
+{
+	daemon_members members;
+
+	if (sig == SIGINT) {
+		fprintf(members.log_stream, "Debug: stopping daemon ...\n");
+		/* Unlock and close lockfile */
+		if (members.pid_fd != -1) {
+			lockf(members.pid_fd, F_ULOCK, 0);
+			close(members.pid_fd);
+		}
+		/* Try to delete lockfile */
+		if (members.pid_file_name != NULL) {
+			unlink(members.pid_file_name);
+		}
+		members.running = 0;
+		/* Reset signal handling to default behavior */
+		signal(SIGINT, SIG_DFL);
+	} else if (sig == SIGHUP) {
+		fprintf(members.log_stream, "Debug: reloading daemon config file ...\n");
+	} else if (sig == SIGCHLD) {
+		fprintf(members.log_stream, "Debug: received SIGCHLD signal\n");
+	}
+}
+
+/*
+ *  This function will daemonize this app
+ */
+
+static int daemonize()
+{
+	daemon_members members;
+
+	pid_t pid = 0;
+	int fd;
+	int ret = -1;
+
+	/* Fork off the parent process */
+	pid = fork();
+
+	/* An error occurred */
+	if (pid < 0) {
+		exit(EXIT_FAILURE);
+		goto error;
+	}
+
+	/* Success: Let the parent terminate */
+	if (pid > 0) {
+		exit(EXIT_SUCCESS);
+	}
+
+	/* On success: The child process becomes session leader */
+	if (setsid() < 0) {
+		exit(EXIT_FAILURE);
+		goto error;
+	}
+
+	/* Ignore signal sent from child to parent process */
+	signal(SIGCHLD, SIG_IGN);
+
+	/* Fork off for the second time*/
+	pid = fork();
+
+	/* An error occurred */
+	if (pid < 0) {
+		exit(EXIT_FAILURE);
+		goto error;
+	}
+
+	/* Success: Let the parent terminate */
+	if (pid > 0) {
+		exit(EXIT_SUCCESS);
+	}
+
+	/* Set new file permissions */
+	umask(0);
+
+	/* Change the working directory to the root directory */
+	/* or another appropriated directory */
+	chdir("/");
+
+	/* Close all open file descriptors */
+	for (fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--) {
+		close(fd);
+	}
+
+	/* Reopen stdin (fd = 0), stdout (fd = 1), stderr (fd = 2) */
+	stdin = fopen("/dev/null", "r");
+	stdout = fopen("/dev/null", "w+");
+	stderr = fopen("/dev/null", "w+");
+
+	/* Try to write PID of daemon to lockfile */
+	if (members.pid_file_name != NULL)
+	{
+		char str[256];
+		members.pid_fd = open(members.pid_file_name, O_RDWR|O_CREAT, 0640);
+		if (members.pid_fd < 0) {
+			/* Can't open lockfile */
+			exit(EXIT_FAILURE);
+			goto error;
+		}
+		if (lockf(members.pid_fd, F_TLOCK, 0) < 0) {
+			/* Can't lock file */
+			exit(EXIT_FAILURE);
+			goto error;
+		}
+		/* Get current PID */
+		sprintf(str, "%d\n", getpid());
+		/* Write PID to lockfile */
+		write(members.pid_fd, str, strlen(str));
+
+		return 0;
+	}
+error:
+	return ret;
+}
 
 /*
  * Print help for this application
  */
-void print_help(void)
+static void print_help()
 {
-	printf("\n Usage: %s [OPTIONS]\n\n", app_name);
+	daemon_members members;
+	
+	printf("\n Usage: %s [OPTIONS]\n\n", members.app_name);
 	printf("  Options:\n");
 	printf("   -h --help                 Print this help\n");
 	printf("   -c --conf_file filename   Read configuration from the file\n");
@@ -55,94 +171,86 @@ void print_help(void)
 /* Main function */
 int main(int argc, char *argv[])
 {
-	static struct option long_options[] = {
-		{"conf_file", required_argument, 0, 'c'},
-		{"log_file", required_argument, 0, 'l'},
-		{"help", no_argument, 0, 'h'},
-		{"daemon", no_argument, 0, 'd'},
-		{"pid_file", required_argument, 0, 'p'},
-		{NULL, 0, 0, 0}
-	};
-	int value, option_index = 0, ret;
-	char *log_file_name = NULL;
-	int start_daemonized = 0;
+	daemon_members members;
+	int ret, value;
+	int option_index = 0;
+	int counter = 0;
 
-	app_name = argv[0];
+	/* Daemon members init */
+	members.log_file_name = NULL;
+	members.pid_file_name = NULL;
+	members.app_name = NULL;
+	members.pid_fd = -1;
+	members.running = 0;
+
+	members.app_name = argv[0];
 
 	/* Try to process all command line arguments */
-	while ((value = getopt_long(argc, argv, "c:l:p:dh", long_options, &option_index)) != -1) {
+	while ((value = getopt_long(argc, argv, "l:p:dh", daemon_options, &option_index)) != -1) {
 		switch (value) {
-			case 'c':
-				conf_file_name = strdup(optarg);
-				break;
 			case 'l':
-				log_file_name = strdup(optarg);
+				members.log_file_name = strdup(optarg);
 				break;
 			case 'p':
-				pid_file_name = strdup(optarg);
+				members.pid_file_name = strdup(optarg);
 				break;
 			case 'd':
-				start_daemonized = 1;
+				members.start_daemonized = 1;
 				break;
 			case 'h':
 				print_help();
 				return EXIT_SUCCESS;
-			case '?':
-				print_help();
-				return EXIT_FAILURE;
 			default:
 				break;
 		}
 	}
 
 	/* When daemonizing is requested at command line. */
-	if (start_daemonized == 1) {
+	if (members.start_daemonized == 1) {
 		/* It is also possible to use glibc function deamon()
 		 * at this point, but it is useful to customize your daemon. */
-		daemonize(pid_file_name);
+		ret = daemonize();
+		if (ret != 0)
+			syslog(LOG_ERR, "Can not init the daemon program: %s, error: %s\n", 
+				members.log_file_name, strerror(errno));
 	}
 
 	/* Open system log and write message to it */
 	openlog(argv[0], LOG_PID|LOG_CONS, LOG_DAEMON);
-	syslog(LOG_INFO, "Started %s", app_name);
+	syslog(LOG_INFO, "Started %s", members.app_name);
 
 	/* Daemon will handle two signals */
-	signal(SIGINT, handle_signal); // Terminal interrupt
-	signal(SIGHUP, handle_signal); // Connection hangs up
-	signal(SIGQUIT, handle_signal); // Terminal exits
-	signal(SIGPIPE, handle_signal); // Write data to a pipe without a read process
-	signal(SIGTTOU, handle_signal); // The background program tries to write
-	signal(SIGTTIN, handle_signal); // The daemon tries to read
-	signal(SIGTERM, handle_signal); // The daemon stoped
+	signal(SIGINT, handle_signal);
+	signal(SIGHUP, handle_signal);
 
 	/* Try to open log file to this daemon */
-	if (log_file_name != NULL) {
-		log_stream = fopen(log_file_name, "a+");
-		if (log_stream == NULL) {
+	if (members.log_file_name != NULL) {
+		members.log_stream = fopen(members.log_file_name, "a+");
+		if (members.log_stream == NULL) {
 			syslog(LOG_ERR, "Can not open log file: %s, error: %s",
-				log_file_name, strerror(errno));
-			log_stream = stdout;
+				members.log_file_name, strerror(errno));
+			members.log_stream = stdout;
 		}
 	} else {
-		log_stream = stdout;
+		members.log_stream = stdout;
 	}
 
 	/* This global variable can be changed in function handling signal */
-	running = 1;
+	members.running = 1;
 
 	/* Never ending loop of server */
-	while (running == 1) {
+	while (members.running == 1) {
 		/* Debug print */
-		ret = fprintf(log_stream, "Debug: %d\n", counter++);
+		ret = fprintf(members.log_stream, "Debug: %d\n", counter++);
 		if (ret < 0) {
 			syslog(LOG_ERR, "Can not write to log stream: %s, error: %s",
-				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
+				(members.log_stream == stdout) ? "stdout" : members.log_file_name, strerror(errno));
 			break;
 		}
-		ret = fflush(log_stream);
+		ret = fflush(members.log_stream);
 		if (ret != 0) {
 			syslog(LOG_ERR, "Can not fflush() log stream: %s, error: %s",
-				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
+				(members.log_stream == stdout) ? "stdout" : members.log_file_name, strerror(errno));
 			break;
 		}
 
@@ -155,17 +263,17 @@ int main(int argc, char *argv[])
 	}
 
 	/* Close log file, when it is used. */
-	if (log_stream != stdout) {
-		fclose(log_stream);
+	if (members.log_stream != stdout) {
+		fclose(members.log_stream);
 	}
 
 	/* Write system log and close it. */
-	syslog(LOG_INFO, "Stopped %s", app_name);
+	syslog(LOG_INFO, "Stopped %s", members.app_name);
 	closelog();
 
 	/* Free allocated memory */
-	if (log_file_name != NULL) free(log_file_name);
-	if (pid_file_name != NULL) free(pid_file_name);
+	if (members.log_file_name != NULL) free(members.log_file_name);
+	if (members.pid_file_name != NULL) free(members.pid_file_name);
 
 	return EXIT_SUCCESS;
 }
