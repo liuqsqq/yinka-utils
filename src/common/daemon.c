@@ -29,6 +29,7 @@
 
 #include "daemon.h"
 
+static daemon_members members;
 
 /*
  *  Callback function for handling signals.
@@ -36,8 +37,6 @@
  */
 static void handle_signal(int sig)
 {
-	daemon_members members;
-
 	if (sig == SIGINT) {
 		fprintf(members.log_stream, "Debug: stopping daemon ...\n");
 		/* Unlock and close lockfile */
@@ -60,13 +59,10 @@ static void handle_signal(int sig)
 }
 
 /*
- *  This function will daemonize this app
+ *  Daemonize function
  */
-
 static int daemonize()
 {
-	daemon_members members;
-
 	pid_t pid = 0;
 	int fd;
 	int ret = -1;
@@ -152,12 +148,10 @@ error:
 }
 
 /*
- * Print help for this application
+ *  Help print function
  */
 static void print_help()
 {
-	daemon_members members;
-	
 	printf("\n Usage: %s [OPTIONS]\n\n", members.app_name);
 	printf("  Options:\n");
 	printf("   -h --help                 Print this help\n");
@@ -168,21 +162,30 @@ static void print_help()
 	printf("\n");
 }
 
-/* Main function */
-int main(int argc, char *argv[])
+/* daemon start function */
+int daemon_start(int argc, char *argv[])
 {
-	daemon_members members;
+	/* define a global option values */
+	static struct option daemon_options[] = {
+		{"log_file", required_argument, 0, 'l'},
+		{"help", no_argument, 0, 'h'},
+		{"daemon", no_argument, 0, 'd'},
+		{"pid_file", required_argument, 0, 'p'},
+		{NULL, 0, 0, 0}
+	};
+
 	int ret, value;
 	int option_index = 0;
 	int counter = 0;
 
-	/* Daemon members init */
+	/* Daemon members clean */
 	members.log_file_name = NULL;
 	members.pid_file_name = NULL;
 	members.app_name = NULL;
 	members.pid_fd = -1;
 	members.running = 0;
 
+	/* Daemon members init */
 	members.app_name = argv[0];
 
 	/* Try to process all command line arguments */
@@ -238,30 +241,14 @@ int main(int argc, char *argv[])
 	/* This global variable can be changed in function handling signal */
 	members.running = 1;
 
-	/* Never ending loop of server */
-	while (members.running == 1) {
-		/* Debug print */
-		ret = fprintf(members.log_stream, "Debug: %d\n", counter++);
-		if (ret < 0) {
-			syslog(LOG_ERR, "Can not write to log stream: %s, error: %s",
-				(members.log_stream == stdout) ? "stdout" : members.log_file_name, strerror(errno));
-			break;
-		}
-		ret = fflush(members.log_stream);
-		if (ret != 0) {
-			syslog(LOG_ERR, "Can not fflush() log stream: %s, error: %s",
-				(members.log_stream == stdout) ? "stdout" : members.log_file_name, strerror(errno));
-			break;
-		}
+	return members.running;
+	
+}
 
-		/* TODO: dome something useful here */
 
-		/* Real server should use select() or poll() for waiting at
-		 * asynchronous event. Note: sleep() is interrupted, when
-		 * signal is received. */
-		sleep(10);
-	}
-
+/* Daemon stop function*/
+int daemon_stop()
+{
 	/* Close log file, when it is used. */
 	if (members.log_stream != stdout) {
 		fclose(members.log_stream);
@@ -278,3 +265,23 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+/* Main function example */
+/*void main(int argc, char * argv[])
+{
+	int ret = 0;
+	int delay = 3;
+	
+	ret = daemon_start(argc, argv);
+	
+	// Never ending loop of server
+	while (ret == 1) {
+		
+		// do some useful things here 
+		system("export LIBVA_DRIVER_NAME=rockchip");
+		system("parole /home/firefly/video/test.mp4");
+
+		// wait to end loop
+		sleep(delay);
+	}
+	daemon_stop();
+}*/

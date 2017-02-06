@@ -15,20 +15,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/types.h>
 
-
-struct option daemon_options[] = {
-		{"log_file", required_argument, 0, 'l'},
-		{"help", no_argument, 0, 'h'},
-		{"daemon", no_argument, 0, 'd'},
-		{"pid_file", required_argument, 0, 'p'},
-		{NULL, 0, 0, 0}
-};
-
+/* define a struct contain useful members */
 typedef struct daemon_members{
 	char *log_file_name;
 	char *pid_file_name;
@@ -38,5 +26,11 @@ typedef struct daemon_members{
 	int running;
 	FILE *log_stream;
 } daemon_members;
-	
+
+/* Use this function to start a daemon */
+int daemon_start(int argc, char *argv[]);
+
+/* Use this function to stop a daemon */
+int daemon_stop();
+
 			
