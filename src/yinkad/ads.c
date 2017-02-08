@@ -14,31 +14,4 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <syslog.h>
-#include <string.h>
-#include <errno.h>
 
-#include "../common/daemon.h"
-
-void main(int argc, char * argv[])
-{
-	int ret = 0;
-	int delay = 1;
-	
-	ret = daemon_start(argc, argv);
-	
-	/* Never ending loop of server */
-	while (ret == 1) {
-		
-		/* do some useful things here */
-		system("export LIBVA_DRIVER_NAME=rockchip");
-		system("parole /home/firefly/video/test.mp4");
-
-		/* wait to end loop */
-		sleep(delay);
-	}
-	daemon_stop();
-}

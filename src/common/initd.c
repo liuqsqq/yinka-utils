@@ -27,7 +27,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include "daemon.h"
+#include "initd.h"
 
 static daemon_members members;
 
