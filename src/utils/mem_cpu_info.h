@@ -15,6 +15,9 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MEM_CPU_INFO_H
+#define MEM_CPU_INFO_H
+
 /* Normal lines define */
 #define VMRSS_LINE 21
 #define PROCESS_ITEM 14
@@ -42,7 +45,8 @@ int process_phy_mem_get(const pid_t pid);
 int sys_total_mem_get();
 
 /* process memory occupation get function */
-float process_mem_rate_get(pid_t pid);
+void  process_mem_rate_get(pid_t pid, long *memvalue, float *memrate);
+
 
 /* process running time get function */
 unsigned int process_cpu_time_get(const pid_t pid);
@@ -52,3 +56,5 @@ unsigned int sys_cpu_time_get();
 
 /* process cpu rate get function */
 float process_cpu_rate_get(pid_t pid);
+
+#endif

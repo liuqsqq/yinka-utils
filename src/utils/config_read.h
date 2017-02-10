@@ -14,10 +14,23 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <syslog.h>
-#include <string.h>
-#include <errno.h>
 
+#ifndef CONFIG_READ_H
+#define CONFIG_READ_H
+
+
+#define KEYVALLEN 256  
+  
+/*   É¾³ý×ó±ßµÄ¿Õ¸ñ   */  
+char * l_trim(char * szOutput, const char *szInput);  
+  
+/*   É¾³ýÓÒ±ßµÄ¿Õ¸ñ   */  
+char *r_trim(char *szOutput, const char *szInput);  
+  
+/*   É¾³ýÁ½±ßµÄ¿Õ¸ñ   */  
+char * a_trim(char * szOutput, const char * szInput);  
+  
+  
+int conf_read(char *filepath, char *AppName, char *KeyName, char *KeyVal );
+
+#endif

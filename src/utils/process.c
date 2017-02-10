@@ -17,6 +17,7 @@
 
 #include <stdio.h> 
 #include <stdlib.h> 
+#include <syslog.h>
 #include <unistd.h> 
 #include <sys/types.h> 
 #include <sys/wait.h> 
@@ -25,6 +26,7 @@
 
 #include "process.h"
 
+
 static void err_quit(char *msg) 
 { 
 	perror(msg); 
@@ -32,29 +34,28 @@ static void err_quit(char *msg)
 } 
 
 /* process pid get */
-int process_pid_get(char *process_name)
+int process_pid_get(char *process_name, pid_t *pid)
 {	
 	FILE *fp;
 	char pidof[POPENSIZE];
 	char pidbuf[BUFFSIZE];
-	pid_t pid;
-
-	sprintf(pidof, "pidof -s %s", process_name);
+	
+	sprintf(pidof, "pidof %s", process_name);
 	fp = popen(pidof, "r");
 	
 	if(fp == NULL){
 		err_quit("popen");
 		}
 	else{
-		if(fgets(pidbuf, sizeof(pid), fp) != NULL)
+		if(fgets(pidbuf, sizeof(pidbuf), fp) != NULL)
 			{
-				printf("The process: %s's pid is: %s\n", process_name, pidbuf);
-				pid = atoi(pidbuf);
-				return pid;
+				fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
+				*pid = atoi(pidbuf);
+				return 0;
 			}
 		else{
-				printf("can't get process id\n ");
-				return 0;
+				//fprintf(stderr, "can't get process id\n ");
+				return -1;
 		}
 	}
 
@@ -69,7 +70,7 @@ int process_status_get(char *process_name)
 	char ps[POPENSIZE];
 	char psbuf[BUFFSIZE];  
 	
-	sprintf(ps, "ps -e | grep -c %s", process_name); 
+	sprintf(ps, "ps -ef | grep  %s | grep -c -v grep", process_name); 
 	fp = popen(ps,"r");
 
 	if(fp == NULL){
@@ -81,11 +82,11 @@ int process_status_get(char *process_name)
 			count = atoi(psbuf);
 			if(count == 0)
 				{
-					printf("process %s not found\n", process_name);
+					//fprintf(stderr, "process %s not found\n", process_name);
 					return 1;
 				}
 			else{
-					printf("program %s has %d process\n", process_name, count);
+					//fprintf(stderr, "program %s has %d process\n", process_name, count);
 					return 0;
 				}
 			}

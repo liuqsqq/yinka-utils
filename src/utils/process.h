@@ -15,3 +15,19 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef PROCESS_H
+#define PROCESS_H
+
+#define BUFFSIZE PIPE_BUF // normal size 4096 
+#define POPENSIZE CHAR_BIT // char bit size 8
+
+
+/* process pid get function */
+int process_pid_get(char *process_name, pid_t *pid);
+
+/* 
+ *  process status get function
+ */
+int process_status_get(char *process_name);
+
+#endif
