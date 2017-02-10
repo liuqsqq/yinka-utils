@@ -31,3 +31,8 @@
 # Debug files
 *.dSYM/
 *.su
+
+Makefile
+*.cache
+*.log
+config.h
