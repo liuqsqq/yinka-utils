@@ -178,9 +178,9 @@ void process_monitor()
         /* try to check program is alive, if not ,try to reboot it */
         fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
-    	ret = process_status_get(g_daemon_config->prog_list[i].program_name);
-        fprintf(log_stream, "INFO: process_status_get ret = %d\n", ret);
-    	if(ret != 0) {   
+    	ret = process_status_get(g_daemon_config->prog_list[i].program_name);    
+    	if(ret != 0) {
+			//fprintf(log_stream, "INFO: can't get program %s's status, now try to restart", g_daemon_config->prog_list[i].program_name);
     		status = system(g_daemon_config->prog_list[i].cmdline);
 			if (status == -1){
 				fprintf(log_stream, "ERROR: execute %s failed\n", g_daemon_config->prog_list[i].cmdline);
@@ -192,12 +192,11 @@ void process_monitor()
 			}
     	}
 		else {
-			fprintf(log_stream, "ERROR: can't get program %s's status\n", g_daemon_config->prog_list[i].program_name);
+			fprintf(log_stream, "INFO: get program %s's status success\n", g_daemon_config->prog_list[i].program_name);
 		}
         
         /* try to check program's resource */
         ret = process_pid_get(g_daemon_config->prog_list[i].program_name, &pid);
-        fprintf(log_stream, "INFO: process_pid_get ret = %d, pid = %d\n", ret, pid);
        	if (-1 != ret) {
         	process_mem_rate_get(pid, &memvalue, &memrate);
            	//cpurate = process_cpu_rate_get(pid);   
