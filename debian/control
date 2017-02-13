@@ -1,15 +1,15 @@
 Source: yinka-utils
-Section: unknown
+Section: admin
 Priority: optional
-Maintainer: unknown <geekerlw@gmail.com>
+Maintainer: Steven Lee <geekerlw@gmail.com>
 Build-Depends: debhelper (>=9),autotools-dev
 Standards-Version: 3.9.6
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: git://anonscm.debian.org/collab-maint/yinka-utils.git
-#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/yinka-utils.git
+Homepage: https://github.com/geekerlw
+Vcs-Git: https://github.com/geekerlw/yinka-utils.git
+Vcs-Browser: https://github.com/geekerlw/yinka-utils.git
 
 Package: yinka-utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: yinka tool
+ yinka-utils contains some useful tools for yinka board
