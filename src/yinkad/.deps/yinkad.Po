@@ -53,7 +53,7 @@ yinkad.o: yinkad.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/arm-linux-gnueabihf/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /usr/lib/gcc/arm-linux-gnueabihf/5/include/stdbool.h \
- ../utils/config_read.h ../utils/mem_cpu_info.h ../utils/process.h
+ ../utils/config_read.h ../utils/mem_cpu_info.h ../utils/process_info.h
 
 /usr/include/stdc-predef.h:
 
@@ -201,4 +201,4 @@ yinkad.o: yinkad.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 ../utils/mem_cpu_info.h:
 
-../utils/process.h:
+../utils/process_info.h:
