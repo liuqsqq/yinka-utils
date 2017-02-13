@@ -17,3 +17,6 @@
         ./autogen.sh    
         ./configure --prefix=/usr  
         make && sudo make install  
+
+## build a deb package
+	DEB_BUILD_OPTIONS=nocheck debuild -i -nc -us -uc -b -d -aarmhf  
