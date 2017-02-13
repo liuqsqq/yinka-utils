@@ -25,9 +25,7 @@
 /* process pid get function */
 int process_pid_get(char *process_name, pid_t *pid);
 
-/* 
- *  process status get function
- */
+/*  process status get function */
 int process_status_get(char *process_name);
 
 #endif

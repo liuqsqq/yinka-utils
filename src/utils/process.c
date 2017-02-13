@@ -43,24 +43,22 @@ int process_pid_get(char *process_name, pid_t *pid)
 	sprintf(pidof, "pidof %s", process_name);
 	fp = popen(pidof, "r");
 	
-	if(fp == NULL){
+	if(fp == NULL) {
 		err_quit("popen");
+	}
+	else {
+		if(fgets(pidbuf, sizeof(pidbuf), fp) != NULL) {
+			fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
+			*pid = atoi(pidbuf);
+			
+			pclose(fp); 
+			return 0;
 		}
-	else{
-		if(fgets(pidbuf, sizeof(pidbuf), fp) != NULL)
-			{
-				fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
-				*pid = atoi(pidbuf);
-				return 0;
-			}
-		else{
-				//fprintf(stderr, "can't get process id\n ");
-				return -1;
+		else {
+			//fprintf(stderr, "can't get process id\n ");
+			return -1;
 		}
 	}
-
-	pclose(fp); 
-	exit(EXIT_SUCCESS); 
 }
 
 int process_status_get(char *process_name) 
@@ -73,26 +71,22 @@ int process_status_get(char *process_name)
 	sprintf(ps, "ps -ef | grep  %s | grep -c -v grep", process_name); 
 	fp = popen(ps,"r");
 
-	if(fp == NULL){
+	if(fp == NULL) {
 		err_quit("popen");
-		}
-	else{
-		if(fgets(psbuf, sizeof(psbuf), fp) != NULL)
-			{
+	}
+	else {
+		if(fgets(psbuf, sizeof(psbuf), fp) != NULL) {
 			count = atoi(psbuf);
-			if(count == 0)
-				{
-					//fprintf(stderr, "process %s not found\n", process_name);
-					return 1;
-				}
-			else{
-					//fprintf(stderr, "program %s has %d process\n", process_name, count);
-					return 0;
-				}
+			if(count == 0) {
+				//fprintf(stderr, "process %s not found\n", process_name);
+
+				pclose(fp);
+				return 1;
+			}
+			else {
+				//fprintf(stderr, "program %s has %d process\n", process_name, count);
+				return 0;
 			}
 		}
-	
-	pclose(fp); 
-	exit(EXIT_SUCCESS); 
+	}
 } 
-

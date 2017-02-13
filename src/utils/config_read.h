@@ -21,16 +21,16 @@
 
 #define KEYVALLEN 256  
   
-/*   É¾³ý×ó±ßµÄ¿Õ¸ñ   */  
-char * l_trim(char * szOutput, const char *szInput);  
+/*   remove spaces on the left   */  
+char * left_space_remove(char * stroutput, const char *strinput);  
   
-/*   É¾³ýÓÒ±ßµÄ¿Õ¸ñ   */  
-char *r_trim(char *szOutput, const char *szInput);  
+/*   remove spaces on the right   */  
+char *right_space_remove(char *stroutput, const char *strinput);  
   
-/*   É¾³ýÁ½±ßµÄ¿Õ¸ñ   */  
-char * a_trim(char * szOutput, const char * szInput);  
+/*   remove spaces on both sides   */  
+char * both_sides_space_remove(char * stroutput, const char * strinput);  
   
-  
+/*   config read function   */  
 int conf_read(char *filepath, char *AppName, char *KeyName, char *KeyVal );
 
 #endif

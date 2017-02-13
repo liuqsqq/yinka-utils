@@ -19,8 +19,10 @@
 #define MEM_CPU_INFO_H
 
 /* Normal lines define */
-#define VMRSS_LINE 21
-#define PROCESS_ITEM 14
+#define VMRSS_LINE 		21
+#define PROCESS_ITEM 	14
+
+#define ERROR		-1
 
 typedef struct {
 	unsigned int user;

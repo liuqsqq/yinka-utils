@@ -41,30 +41,30 @@ static char *conf_file_name;
 static FILE *log_stream;
 
 
-#define MAX_DAMEON_PROGRAMS_NUMS    (2)
+#define MAX_DAMEON_PROGRAMS_NUMS	2
 
 #define DEFAULT_CONF_FILE_PATH "/etc/yinkad.conf"
-#define DEFAULT_DELAY   (1)
+#define DEFAULT_DELAY   1
 
 typedef struct {
 		char *cmdline;
 		char *program_name;
 		bool dameon_switch;
-}PROGRAM_T;
+}program_t;
 
 typedef struct{
 	int delay;
-	PROGRAM_T prog_list[MAX_DAMEON_PROGRAMS_NUMS] ;
-}DAEMON_CONFIG_T;
+	program_t prog_list[MAX_DAMEON_PROGRAMS_NUMS];
+}daemon_config_t;
 
-char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={"yinka-terminal", "ads"};
+char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
+						"yinka-terminal", 
+						"ads"
+						};
 
 /* typedef a global config struct */
-DAEMON_CONFIG_T *gDameonConfig = NULL;
+daemon_config_t *g_daemon_config = NULL;
 int running = 0;
-
-#define SIGTEST   (__SIGRTMIN+10)
-//void handle_signal(int sig);
 
 /*
  *  Callback function for handling signals.
@@ -72,25 +72,22 @@ int running = 0;
  */
 void handle_signal(int sig)
 {
-	if (sig == SIGINT) 
-	{
-        fprintf(log_stream, "\nDebug: stopping daemon ...\n");
+	if (sig == SIGINT) {
+        fprintf(log_stream, "Debug: stopping daemon ...\n");
 		running = 0;
 		/* Reset signal handling to default behavior */
 		signal(SIGINT, SIG_DFL);
-        fprintf(log_stream, "\nhere");
+        fprintf(log_stream, "here\n");
 	} 
-	else if (sig == SIGHUP) 
-	{
+	else if (sig == SIGHUP) {
 		//read_conf_file();
 	} 
-    else if (sig == SIGCHLD) 
-    {
-        fprintf(log_stream, "\nDebug: received SIGCHLD signal");
+    else if (sig == SIGCHLD) {
+        fprintf(log_stream, "Debug: received SIGCHLD signal\n");
 	}
-	else if (sig == SIGTEST)
-	{
-	    fprintf(log_stream, "\nDebug: receievd SIGTEST signal");
+	//else if (sig == SIGTEST)
+	else if (sig == SIGTERM) {
+	    fprintf(log_stream, "Debug: receievd SIGTERM signal\n");
         //todo
 	}
 }
@@ -103,19 +100,17 @@ int read_conf_file()
 {
 	FILE *conf_file = NULL;
 	int ret = -1;
+	int i = 0;
 	char tempstr[255] = {0};
 	char resultstr[255] ={0};
-	int i = 0;
     
-	if (conf_file_name == NULL)
-	{
+	if (conf_file_name == NULL) {
 		conf_file_name = strdup(DEFAULT_CONF_FILE_PATH);
 	}
 
 	conf_file = fopen(conf_file_name, "r");
 
-	if (conf_file == NULL) 
-	{
+	if (conf_file == NULL) {
         fprintf(log_stream, "Can not open config file: %s, error: %s\n",
                 conf_file_name, strerror(errno));
 		return -1;
@@ -125,48 +120,39 @@ int read_conf_file()
 
 
     ret = conf_read(conf_file_name, "General Sets", "delay", resultstr);
-	if (-1 != ret)
-	{
-		gDameonConfig->delay= atoi(resultstr);
+	if (-1 != ret) {
+		g_daemon_config->delay= atoi(resultstr);
 	}
-	else
-	{
-		gDameonConfig->delay = DEFAULT_DELAY;
+	else{
+		g_daemon_config->delay = DEFAULT_DELAY;
 	}
 
 	//fprintf(log_stream, "\nDebug: delay is %d", gDameonConfig->delay);
     
-    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ )
-    {  
+    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {  
         memset(resultstr, 0 ,255);
 	    ret  = conf_read(conf_file_name, prog_names[i], "program_name", resultstr);  
-        if (-1 != ret)	
-	    {
-	        gDameonConfig->prog_list[i].program_name = strdup(resultstr);
+        if (-1 != ret) {
+	        g_daemon_config->prog_list[i].program_name = strdup(resultstr);
             memset(resultstr, 0 ,255);
     	    ret  = conf_read(conf_file_name, prog_names[i], "switch", resultstr);  
-            if (-1 != ret)	
-    	    {
-    	        if (strcmp("on", resultstr) == 0)
-        	    {
-        	        gDameonConfig->prog_list[i].dameon_switch = true;  
+            if (-1 != ret) {
+    	        if (strcmp("on", resultstr) == 0) {
+        	        g_daemon_config->prog_list[i].dameon_switch = true;  
                 }
-                else
-                {
-                    gDameonConfig->prog_list[i].dameon_switch = false;  
+                else {
+                    g_daemon_config->prog_list[i].dameon_switch = false;  
                 }
 
             }
-            else
-            {
-                gDameonConfig->prog_list[i].dameon_switch = true;
+            else {
+                g_daemon_config->prog_list[i].dameon_switch = true;
             }
 
             memset(resultstr, 0 ,255);
     	    ret  = conf_read(conf_file_name, prog_names[i], "cmdline", resultstr);  
-            if (-1 != ret)	
-    	    {
-    	        gDameonConfig->prog_list[i].cmdline = strdup(resultstr);
+            if (-1 != ret) {
+    	        g_daemon_config->prog_list[i].cmdline = strdup(resultstr);
             }
         }     
     }
@@ -177,7 +163,7 @@ int read_conf_file()
 }
 
 
-void process_monitor_program()
+void process_monitor()
 {
     int i = 0;
     int ret = -1;
@@ -186,35 +172,34 @@ void process_monitor_program()
     float cpurate = 0.0;
     long  memvalue = 0;
 
-    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ )
-    {
+    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {
         /* check whether dameon switch is on or off*/
-        if (!gDameonConfig->prog_list[i].dameon_switch)
-        {
+        if (!g_daemon_config->prog_list[i].dameon_switch) {
             continue;
         }
         
         /* try to check program is alive, if not ,try to reboot it */
-        fprintf(log_stream, "\nDebug: program_name = %s", gDameonConfig->prog_list[i].program_name);
-    	ret = process_status_get(gDameonConfig->prog_list[i].program_name);
-        fprintf(log_stream, "\nDebug: process_status_get ret = %d", ret);
-    	if(ret != 0)
-        {   
-            system("export DISPLAY=:0.0");
-    		system(gDameonConfig->prog_list[i].cmdline);          
-            fprintf(log_stream, "\nDebug: execute %s", gDameonConfig->prog_list[i].cmdline);
+        fprintf(log_stream, "Debug: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
+		
+    	ret = process_status_get(g_daemon_config->prog_list[i].program_name);
+        fprintf(log_stream, "Debug: process_status_get ret = %d\n", ret);
+    	if(ret != 0) {   
+            if(-1 != system("export DISPLAY=:0.0")){
+    			if(-1 == system(g_daemon_config->prog_list[i].cmdline)) {
+					fprintf(log_stream, "Debug: execute %s failed\n", g_daemon_config->prog_list[i].cmdline);
+    			}
+            }
+            fprintf(log_stream, "Debug: execute %s\n", g_daemon_config->prog_list[i].cmdline);
     	}; 
         
-        
         /* try to check program's resource */
-        ret = process_pid_get(gDameonConfig->prog_list[i].program_name, &pid);
-        fprintf(log_stream, "\nDebug: process_pid_get ret = %d, pid = %d", ret, pid);
-       	if (-1 != ret)
-        {
+        ret = process_pid_get(g_daemon_config->prog_list[i].program_name, &pid);
+        fprintf(log_stream, "Debug: process_pid_get ret = %d, pid = %d\n", ret, pid);
+       	if (-1 != ret) {
            process_mem_rate_get(pid, &memvalue, &memrate);
            //cpurate = process_cpu_rate_get(pid);   
            memrate = memrate * 100;
-	       fprintf(log_stream, "\nDebug: memrate of program %s is %f%%, value is %ld", gDameonConfig->prog_list[i].program_name, memrate, memvalue/1000);
+	       fprintf(log_stream, "Debug: memrate of program %s is %f%%, value is %ld\n", g_daemon_config->prog_list[i].program_name, memrate, memvalue/1000);
         }
 
     }
@@ -222,19 +207,18 @@ void process_monitor_program()
 
 int yinka_dameon_init()
 {
-    gDameonConfig = (DAEMON_CONFIG_T *)malloc(sizeof(DAEMON_CONFIG_T));
-    if (!gDameonConfig)
-    {
+    g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
+    if (!g_daemon_config) {
         return -1;
     }
-    memset(gDameonConfig, 0, sizeof(DAEMON_CONFIG_T));
+    memset(g_daemon_config, 0, sizeof(daemon_config_t));
     log_stream = stderr;
     running = 0;
 
     /* Daemon will handle three signals */
 	signal(SIGINT, handle_signal);
 	signal(SIGHUP, handle_signal);
-	signal(SIGTEST, handle_signal);
+	signal(SIGTERM, handle_signal);
 
     return 0;
 }
@@ -245,62 +229,51 @@ void main(int argc, char *argv[])
     int i = 0;
     
     ret = yinka_dameon_init();
-    if (0 != ret)
-    {
+    if (0 != ret) {
         exit(EXIT_FAILURE);
     }
+	
 	/* config read */
 	ret = read_conf_file();
-    if (-1 != ret)
-    {
-        fprintf(log_stream, "\nDebug: delay is %d", gDameonConfig->delay);
-        for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ )
-        {
-            fprintf(log_stream, "\nDebug: program_name is %s", gDameonConfig->prog_list[i].program_name);
-            fprintf(log_stream, "\nDebug: dameon_switch is %d", gDameonConfig->prog_list[i].dameon_switch);
-            fprintf(log_stream, "\nDebug: cmdline is %s", gDameonConfig->prog_list[i].cmdline);
+
+	if (-1 != ret) {
+        fprintf(log_stream, "Debug: delay is %d\n", g_daemon_config->delay);
+        for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {
+            fprintf(log_stream, "Debug: program_name is %s\n", g_daemon_config->prog_list[i].program_name);
+            fprintf(log_stream, "Debug: dameon_switch is %d\n", g_daemon_config->prog_list[i].dameon_switch);
+            fprintf(log_stream, "Debug: cmdline is %s\n", g_daemon_config->prog_list[i].cmdline);
         }
-        fprintf(log_stream, "\nhere");
     }
 
-
-    delay = gDameonConfig->delay;
+    delay = g_daemon_config->delay;
 	running = 1;
     
 	/* Never ending loop of server */
-	while (running == 1) 
-    {
-		process_monitor_program();
+	while (running == 1) {
+		process_monitor();
 		sleep(delay);
 	}
 
     /* Free allocated memory */
-	if (conf_file_name != NULL) 
-    {
+	if (conf_file_name != NULL) {
         free(conf_file_name);
     }
 
-    
-    
-    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ )
-    {
-       if (NULL != gDameonConfig->prog_list[i].cmdline)
-       {
-            free(gDameonConfig->prog_list[i].cmdline); 
-            gDameonConfig->prog_list[i].cmdline = NULL;
+    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {
+       if (NULL != g_daemon_config->prog_list[i].cmdline) {
+            free(g_daemon_config->prog_list[i].cmdline); 
+            g_daemon_config->prog_list[i].cmdline = NULL;
        }
-       if (NULL != gDameonConfig->prog_list[i].program_name)
-       {
-            free(gDameonConfig->prog_list[i].program_name); 
-            gDameonConfig->prog_list[i].program_name = NULL;
+       if (NULL != g_daemon_config->prog_list[i].program_name) {
+            free(g_daemon_config->prog_list[i].program_name); 
+            g_daemon_config->prog_list[i].program_name = NULL;
        }
-       if (NULL != gDameonConfig)
-       {
-            free(gDameonConfig); 
-            gDameonConfig = NULL;
+       if (NULL != g_daemon_config) {
+            free(g_daemon_config); 
+            g_daemon_config = NULL;
        }
        
     }
     
-    fprintf(log_stream, "\nhere2");
+    fprintf(log_stream, "Debug: daemon exit\n");
 }
