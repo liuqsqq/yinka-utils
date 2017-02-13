@@ -19,7 +19,7 @@
 #define PROCESS_H
 
 #define BUFFSIZE PIPE_BUF // normal size 4096 
-#define POPENSIZE CHAR_BIT // char bit size 8
+#define POPENSIZE UCHAR_MAX // char bit size 8
 
 
 /* process pid get function */
