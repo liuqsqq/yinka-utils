@@ -4,8 +4,8 @@ noinst_LTLIBRARIES = \
 libyinkad_la_SOURCES = \
 	config_read.c	\
 	config_read.h	\
-	process.c	\
-	process.h	\
+	process_info.c	\
+	process_info.h	\
 	mem_cpu_info.c	\
 	mem_cpu_info.h
 
