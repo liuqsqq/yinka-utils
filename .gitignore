@@ -53,3 +53,9 @@ Build
 
 /build
 /subprojects
+
+#deb
+.debhelper
+debhelper-build-stamp
+debian/files
+yinka-utils.substvars
