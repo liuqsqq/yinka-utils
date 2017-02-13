@@ -7,11 +7,11 @@
         [General Sets]
         delay = 10
 
-        # set process name and monitor status by on/off#
+        # set process name and monitor status by on/off
         [yinka-terminal]
         cmdline = yinka
         program_name = yinka
-        switch = on>
+        switch = on
 
 ## how to build
         ./autogen.sh    
