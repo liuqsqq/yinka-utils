@@ -24,7 +24,7 @@
 #include <fcntl.h> 
 #include <limits.h> 
 
-#include "process.h"
+#include "process_info.h"
 
 
 static void err_quit(char *msg) 
@@ -48,7 +48,7 @@ int process_pid_get(char *process_name, pid_t *pid)
 	}
 	else {
 		if(fgets(pidbuf, sizeof(pidbuf), fp) != NULL) {
-			fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
+			//fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
 			*pid = atoi(pidbuf);
 			
 			pclose(fp); 

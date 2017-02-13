@@ -15,8 +15,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROCESS_H
-#define PROCESS_H
+#ifndef PROCESS_INFO_H
+#define PROCESS_INFO_H
 
 #define BUFFSIZE PIPE_BUF // normal size 4096 
 #define POPENSIZE UCHAR_MAX // char bit size 8
