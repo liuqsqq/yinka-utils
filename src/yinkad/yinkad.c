@@ -29,12 +29,9 @@
 #include <errno.h>
 #include <stdbool.h>
  
-
 #include "../utils/config_read.h"
 #include "../utils/mem_cpu_info.h"
-#include "../utils/process.h"
-
-
+#include "../utils/process_info.h"
 
 
 static char *conf_file_name;
@@ -167,7 +164,7 @@ void process_monitor()
 {
     int i = 0;
     int ret = -1;
-    pid_t pid;
+    pid_t pid, status;
     float memrate = 0.0;
     float cpurate = 0.0;
     long  memvalue = 0;
@@ -179,29 +176,37 @@ void process_monitor()
         }
         
         /* try to check program is alive, if not ,try to reboot it */
-        fprintf(log_stream, "Debug: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
+        fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
     	ret = process_status_get(g_daemon_config->prog_list[i].program_name);
-        fprintf(log_stream, "Debug: process_status_get ret = %d\n", ret);
+        fprintf(log_stream, "INFO: process_status_get ret = %d\n", ret);
     	if(ret != 0) {   
-            if(-1 != system("export DISPLAY=:0.0")){
-    			if(-1 == system(g_daemon_config->prog_list[i].cmdline)) {
-					fprintf(log_stream, "Debug: execute %s failed\n", g_daemon_config->prog_list[i].cmdline);
-    			}
-            }
-            fprintf(log_stream, "Debug: execute %s\n", g_daemon_config->prog_list[i].cmdline);
-    	}; 
+    		status = system(g_daemon_config->prog_list[i].cmdline);
+			if (status == -1){
+				fprintf(log_stream, "ERROR: execute %s failed\n", g_daemon_config->prog_list[i].cmdline);
+			}
+			else{
+				if(WEXITSTATUS(status) != 0){
+					fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(status));
+				}
+			}
+    	}
+		else {
+			fprintf(log_stream, "ERROR: can't get program %s's status\n", g_daemon_config->prog_list[i].program_name);
+		}
         
         /* try to check program's resource */
         ret = process_pid_get(g_daemon_config->prog_list[i].program_name, &pid);
-        fprintf(log_stream, "Debug: process_pid_get ret = %d, pid = %d\n", ret, pid);
+        fprintf(log_stream, "INFO: process_pid_get ret = %d, pid = %d\n", ret, pid);
        	if (-1 != ret) {
-           process_mem_rate_get(pid, &memvalue, &memrate);
-           //cpurate = process_cpu_rate_get(pid);   
-           memrate = memrate * 100;
-	       fprintf(log_stream, "Debug: memrate of program %s is %f%%, value is %ld\n", g_daemon_config->prog_list[i].program_name, memrate, memvalue/1000);
+        	process_mem_rate_get(pid, &memvalue, &memrate);
+           	//cpurate = process_cpu_rate_get(pid);   
+           	memrate = memrate * 100;
+	       	fprintf(log_stream, "INFO: program %s used %ldM memory, memory rate is : %f%%\n\n", g_daemon_config->prog_list[i].program_name, memvalue/1000, memrate);
         }
-
+		else {
+			fprintf(log_stream, "ERROR: can't get program %s's memory info\n\n", g_daemon_config->prog_list[i].program_name);
+    	}
     }
 }
 
@@ -237,11 +242,13 @@ void main(int argc, char *argv[])
 	ret = read_conf_file();
 
 	if (-1 != ret) {
-        fprintf(log_stream, "Debug: delay is %d\n", g_daemon_config->delay);
+        fprintf(log_stream, "INFO: main program's delay is: %d\n\n", g_daemon_config->delay);
         for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {
-            fprintf(log_stream, "Debug: program_name is %s\n", g_daemon_config->prog_list[i].program_name);
-            fprintf(log_stream, "Debug: dameon_switch is %d\n", g_daemon_config->prog_list[i].dameon_switch);
-            fprintf(log_stream, "Debug: cmdline is %s\n", g_daemon_config->prog_list[i].cmdline);
+            fprintf(log_stream, "INFO: program_name is: %s\n", g_daemon_config->prog_list[i].program_name);
+            fprintf(log_stream, "INFO: program %s's dameon_switch status is: %d\n", 
+					g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].dameon_switch);
+            fprintf(log_stream, "INFO: program %s's cmdline is: %s\n\n", 
+					g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].cmdline);
         }
     }
 
@@ -275,5 +282,5 @@ void main(int argc, char *argv[])
        
     }
     
-    fprintf(log_stream, "Debug: daemon exit\n");
+    fprintf(log_stream, "INFO: daemon exit\n");
 }
