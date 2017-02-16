@@ -274,11 +274,10 @@ void main(int argc, char *argv[])
             free(g_daemon_config->prog_list[i].program_name); 
             g_daemon_config->prog_list[i].program_name = NULL;
        }
-       if (NULL != g_daemon_config) {
-            free(g_daemon_config); 
-            g_daemon_config = NULL;
-       }
-       
+    }
+    if (NULL != g_daemon_config) {
+		free(g_daemon_config);
+        g_daemon_config = NULL;
     }
     
     fprintf(log_stream, "INFO: daemon exit\n");
