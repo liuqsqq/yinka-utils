@@ -4,5 +4,5 @@ yinkad_SOURCES = \
 	yinkad.c
 
 yinkad_LDADD = \
-	$(top_builddir)/src/utils/libyinkad.la
-
+	$(top_builddir)/src/utils/libyinkad.la \
+	-lpthread
