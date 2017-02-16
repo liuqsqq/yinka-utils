@@ -22,15 +22,15 @@
 #include <string.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <time.h>
 #include <pthread.h>
-#include <sys/socket.h> 
 #include <sys/un.h>
-#include<netinet/in.h>
+#include <sys/socket.h> 
 #include <sys/select.h>
 #include <arpa/inet.h>
-#include<time.h>
+#include <netinet/in.h>
 
- 
+#include "yinkad.h"
 #include "../utils/config_read.h"
 #include "../utils/mem_cpu_info.h"
 #include "../utils/process_info.h"
@@ -39,57 +39,17 @@
 static char *conf_file_name;
 static FILE *log_stream;
 static int g_yinka_daemon_sock;
+static int running = 0;
 
-#define MAX_DAMEON_PROGRAMS_NUMS		2
-#define MAX_KEEPALIVE_FAILED_TIMES 		10
-#define DEFAULT_DELAY   				1
-#define YINKA_DAEMON_PORT  				12332 
-
-#define DEFAULT_CONF_FILE_PATH "/etc/yinkad.conf"
-
-typedef struct {
-    unsigned short type;
-    unsigned short len;
-    char data[0];
-}yinka_daemon_tlv_t;
-
-typedef struct {
-    int version;
-    char *prog_name;
-    float cpurate;
-    float memrate;
-    long uptime;
-    int reboot_times;
-    int keepalive_failed_times; 
-}program_state_t;
-
-typedef struct {
-		char *cmdline;
-		char *program_name;
-		bool dameon_switch;
-}program_t;
-
-typedef struct{
-	int delay;
-	program_t prog_list[MAX_DAMEON_PROGRAMS_NUMS];
-}daemon_config_t;
-
-char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
-						"yinka-terminal", 
-						"ads"
-						};
-
-/* typedef a global config struct */
+/* typedef global config struct */
 daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
-
-int running = 0;
 
 /*
  *  Callback function for handling signals.
  * 	sig	identifier of signal
  */
-void handle_signal(int sig)
+static void handle_signal(int sig)
 {
 	if (sig == SIGINT) {
         fprintf(log_stream, "Debug: stopping daemon ...\n");
@@ -111,11 +71,10 @@ void handle_signal(int sig)
 	}
 }
 
-
 /*
  *  Read configuration from config file
  */
-int read_conf_file()
+static int read_conf_file()
 {
 	FILE *conf_file = NULL;
 	int ret = -1;
@@ -181,7 +140,7 @@ int read_conf_file()
 	return 0;
 }
 
-void process_monitor()
+static void process_monitor()
 {
     int i = 0;
     int ret = -1;
@@ -233,7 +192,7 @@ void process_monitor()
     }
 }
 
-void process_keepalive()
+static void process_keepalive()
 {
     int i = 0;
     for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ ) {
@@ -252,7 +211,7 @@ void process_keepalive()
     }
 }
 
-int process_data_receive(char *ptr)
+static int process_data_receive(char *ptr)
 {
     char buff[512];
     char *yinka_daemon_tmp= NULL;
@@ -273,8 +232,7 @@ int process_data_receive(char *ptr)
     int client_addr_len;
     client_addr_len = sizeof(client_addr);  
     
-    while (1)
-    {
+    while (1) {
         data_len = 0;
         control_cmd_data_len = 0;
         FD_ZERO(&set);
@@ -283,8 +241,7 @@ int process_data_receive(char *ptr)
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
         nfound = select(max_fd + 1, &set, (fd_set *)0, (fd_set *)0, &timeout);
-        if(nfound  < 0)          
-        {
+        if(nfound  < 0) {
             fprintf(log_stream, "ERROR: select error!\n");
             continue;
         }
@@ -297,16 +254,13 @@ int process_data_receive(char *ptr)
         }
         #endif 
         
-        if (FD_ISSET(g_yinka_daemon_sock, &set))
-        {        
+        if (FD_ISSET(g_yinka_daemon_sock, &set)) {        
             recv_bytes = recvfrom(g_yinka_daemon_sock, buff, 511, 0, (struct sockaddr*)&client_addr, &client_addr_len);
-            if (recv_bytes > 0)
-            {
+            if (recv_bytes > 0) {
                 buff[recv_bytes] = 0;
                 fprintf(log_stream,"INFO: Receive %d bytes\n", recv_bytes); 
                 yinka_daemon_tmp = buff;    
-                while(data_len < recv_bytes)
-                {
+                while(data_len < recv_bytes) {
                     control_cmd = (yinka_daemon_tlv_t *)yinka_daemon_tmp;
                     type = ntohs(control_cmd->type);
                     data_len += sizeof(unsigned short);
@@ -323,11 +277,9 @@ int process_data_receive(char *ptr)
                     #endif
                     
                     /* deal control cmd*/
-                    if (type == 0x00)
-                    {
+                    if (type == 0x00) {
                         control_cmd_tmp = (yinka_daemon_tmp + data_len);
-                        while ( control_cmd_data_len < value_len )
-                        {
+                        while ( control_cmd_data_len < value_len ) {
                             control_cmd = (yinka_daemon_tlv_t *)control_cmd_tmp;
                             type = ntohs(control_cmd->type);
                             control_cmd_data_len += sizeof(unsigned short);
@@ -342,14 +294,12 @@ int process_data_receive(char *ptr)
                             }
                             #endif
                             
-                            if ( (type == 0x01) || (type == 0x02))
-                            {
+                            if ( (type == 0x01) || (type == 0x02)) {
                                 if (control_cmd->data[0] == 0x01)
                                     g_daemon_config->prog_list[type-1].dameon_switch = true;
                                 else if (control_cmd->data[0] == 0x00)
                                     g_daemon_config->prog_list[type-1].dameon_switch = false;
-                                else if (control_cmd->data[0] == 0x02)
-                                {
+                                else if (control_cmd->data[0] == 0x02) {
                                    //get program's status
                                    fprintf(log_stream, "Prog_name:%s\n", g_prog_state_list[type-1].prog_name);   
                                    fprintf(log_stream, "Version:%d\n", g_prog_state_list[type-1].version);   
@@ -362,24 +312,18 @@ int process_data_receive(char *ptr)
                                     fprintf(log_stream, "Control cmd:%s program %s's dameon\n",g_daemon_config->prog_list[type-1].dameon_switch?"open":"close",\
                                     g_daemon_config->prog_list[type-1].program_name);
                             }
-                            else if (type == 0xffff)
-                            {
-                                if (control_cmd->data[0] == 0x01)
-                                {
-                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++)
-                                    {
+                            else if (type == 0xffff) {
+                                if (control_cmd->data[0] == 0x01) {
+                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
                                         g_daemon_config->prog_list[k].dameon_switch = true;
                                     }   
                                 }                        
-                                else if (control_cmd->data[0] == 0x00)
-                                {
-                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++)
-                                    {
+                                else if (control_cmd->data[0] == 0x00) {
+                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
                                        g_daemon_config->prog_list[k].dameon_switch = false;
                                     }   
                                 }   
-                                else if (control_cmd->data[0] == 0x02)
-                                {
+                                else if (control_cmd->data[0] == 0x02) {
                                     //get all program's status
                                 } 
                                 fprintf(log_stream, "Control cmd:close all programs' dameon\n");
@@ -391,29 +335,28 @@ int process_data_receive(char *ptr)
                         
                     }
                     /* deal keepalive cmd*/
-                    else if (type == 0x01)
-                    {
+                    else if (type == 0x01) {
                         //fprintf(log_stream, "\nDebug:value:%d", ntohl(*((int*)pKeepAlive->data)));
                         g_prog_state_list[control_cmd->data[0]].keepalive_failed_times = 0;
                     
-}
+					}
                     data_len += value_len;
                     yinka_daemon_tmp += data_len;
                 }
                 //fprintf(log_stream, "\n%s %u says: %s\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), buff);
             }
-            else
-            {
+            else {
                 perror("recv");
                 break;
             }       
         }
-    }
+    }	
     close(g_yinka_daemon_sock);
+	
     return 0;
 }
 
-int yinka_daemon_server_init()
+static int yinka_daemon_server_init()
 {
 	int on = 1;
     pthread_t  yinka_daemon_thread;
@@ -441,7 +384,7 @@ int yinka_daemon_server_init()
     return 0;
 }
 
-int yinka_dameon_init()
+static int yinka_dameon_init()
 {
     g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
     if (!g_daemon_config) {
