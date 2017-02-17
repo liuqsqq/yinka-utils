@@ -46,27 +46,6 @@ daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
 
 /*
- *  Callback function for handling signals.
- * 	sig	identifier of signal
- */
-static void handle_signal(int sig)
-{
-	if (sig == SIGINT) {
-        fprintf(log_stream, "INFO: stopping daemon ...\n");
-		running = 0;
-		/* Reset signal handling to default behavior */
-		signal(SIGINT, SIG_DFL);
-        fprintf(log_stream, "INFO: reset signal handing to default behavior\n");
-	} 
-	else if (sig == SIGHUP) {
-		//read_conf_file();
-	} 
-    else if (sig == SIGCHLD) {
-        fprintf(log_stream, "INFO: received SIGCHLD signal\n");
-	}
-}
-
-/*
  *  Read configuration from config file
  */
 static int read_conf_file()
@@ -133,6 +112,30 @@ static int read_conf_file()
 	fclose(conf_file);
 
 	return 0;
+}
+
+/*
+ *  Callback function for handling signals.
+ * 	sig	identifier of signal
+ */
+static void handle_signal(int sig)
+{
+	if (sig == SIGINT) {
+        fprintf(log_stream, "INFO: stopping daemon ...\n");
+		running = 0;
+		/* Reset signal handling to default behavior */
+		signal(SIGINT, SIG_DFL);
+        fprintf(log_stream, "INFO: reset signal handing to default behavior\n");
+	} 
+	else if (sig == SIGHUP) {
+		fprintf(log_stream, "DEBUG: received SIGHUP signal\n");
+		if(!read_conf_file()){
+			fprintf(log_stream, "INFO: reload daemon config\n");
+		}
+	} 
+    else if (sig == SIGCHLD) {
+        fprintf(log_stream, "INFO: received SIGCHLD signal\n");
+	}
 }
 
 static void process_restart(char *program_name, char *cmdline)
@@ -441,14 +444,13 @@ int main()
         }
     }
 
-    delay = g_daemon_config->delay;
 	running = 1;
     
 	/* Never ending loop of server */
 	while (running == 1) {
 		process_monitor();
 		process_keepalive();
-		sleep(delay);
+		sleep(g_daemon_config->delay);
 	}
 
     /* Free allocated memory */
