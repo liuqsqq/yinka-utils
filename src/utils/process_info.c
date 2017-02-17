@@ -51,11 +51,12 @@ int process_pid_get(char *process_name, pid_t *pid)
 			//fprintf(stderr, "The process: %s's pid is: %s\n", process_name, pidbuf);
 			*pid = atoi(pidbuf);
 			
-			pclose(fp); 
+			pclose(fp);
 			return 0;
 		}
 		else {
 			//fprintf(stderr, "can't get process id\n ");
+			pclose(fp);
 			return -1;
 		}
 	}
@@ -81,10 +82,11 @@ int process_status_get(char *process_name)
 				//fprintf(stderr, "process %s not found\n", process_name);
 
 				pclose(fp);
-				return 1;
+				return -1;
 			}
 			else {
 				//fprintf(stderr, "program %s has %d process\n", process_name, count);
+				pclose(fp);
 				return 0;
 			}
 		}
