@@ -140,11 +140,45 @@ static int read_conf_file()
 	return 0;
 }
 
+static void process_restart(char *cmdline)
+{
+	pid_t status;
+	
+	status = system(cmdline);
+	if (status == -1){				
+		fprintf(log_stream, "ERROR: execute %s failed\n", cmdline);
+	}
+	else{
+		if(WEXITSTATUS(status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(status));
+		}
+	}
+}
+
+static void process_keepalive()
+{
+    int i = 0;
+    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ ) {
+        /* check whether dameon switch is on or off*/
+        if (!g_daemon_config->prog_list[i].dameon_switch) {
+            continue;
+        }
+        if (MAX_KEEPALIVE_FAILED_TIMES < g_prog_state_list[i].keepalive_failed_times) {
+            fprintf(log_stream, "INFO: keepalive timeout, try to restart %s\n", g_daemon_config->prog_list[i].program_name);
+            g_prog_state_list[i].keepalive_failed_times = 0;
+            process_restart(g_daemon_config->prog_list[i].cmdline);
+        }
+        else {
+            g_prog_state_list[i].keepalive_failed_times++;
+        }
+    }
+}
+
 static void process_monitor()
 {
     int i = 0;
     int ret = -1;
-    pid_t pid, status;
+    pid_t pid;
     float memrate = 0.0;
     float cpurate = 0.0;
     long  memvalue = 0;
@@ -160,16 +194,8 @@ static void process_monitor()
 		
     	ret = process_status_get(g_daemon_config->prog_list[i].program_name);    
     	if(ret != 0) {
-			//fprintf(log_stream, "INFO: can't get program %s's status, now try to restart", g_daemon_config->prog_list[i].program_name);
-    		status = system(g_daemon_config->prog_list[i].cmdline);
-			if (status == -1){				
-				fprintf(log_stream, "ERROR: execute %s failed\n", g_daemon_config->prog_list[i].cmdline);
-			}
-			else{
-				if(WEXITSTATUS(status) != 0){
-					fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(status));
-				}
-			}
+			fprintf(log_stream, "ERROR: can't get program %s's status, now try to restart", g_daemon_config->prog_list[i].program_name);
+    		process_restart(g_daemon_config->prog_list[i].cmdline);
 			g_prog_state_list[i].reboot_times++;
             g_prog_state_list[i].uptime = time(NULL);
     	}
@@ -192,24 +218,6 @@ static void process_monitor()
     }
 }
 
-static void process_keepalive()
-{
-    int i = 0;
-    for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++ ) {
-        /* check whether dameon switch is on or off*/
-        if (!g_daemon_config->prog_list[i].dameon_switch) {
-            continue;
-        }
-        if (MAX_KEEPALIVE_FAILED_TIMES < g_prog_state_list[i].keepalive_failed_times) {
-            fprintf(log_stream, "INFO: keepalive timeout, try to restart %s\n", g_daemon_config->prog_list[i].program_name);
-            g_prog_state_list[i].keepalive_failed_times = 0;
-            system(g_daemon_config->prog_list[i].cmdline);
-        }
-        else {
-            g_prog_state_list[i].keepalive_failed_times++;
-        }
-    }
-}
 
 static int process_data_receive(char *ptr)
 {
