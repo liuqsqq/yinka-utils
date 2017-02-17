@@ -64,11 +64,6 @@ static void handle_signal(int sig)
     else if (sig == SIGCHLD) {
         fprintf(log_stream, "INFO: received SIGCHLD signal\n");
 	}
-	//else if (sig == SIGTEST)
-	else if (sig == SIGTERM) {
-	    fprintf(log_stream, "INFO: receievd SIGTERM signal\n");
-        //todo
-	}
 }
 
 /*
@@ -418,7 +413,6 @@ static int yinka_dameon_init()
     /* Daemon will handle three signals */
 	signal(SIGINT, handle_signal);
 	signal(SIGHUP, handle_signal);
-	signal(SIGTERM, handle_signal);
 
     return 0;
 }
