@@ -140,17 +140,21 @@ static int read_conf_file()
 	return 0;
 }
 
-static void process_restart(char *cmdline)
+static void process_restart(char *program_name, char *cmdline)
 {
-	pid_t status;
+	pid_t kill_status, restart_status;
+	char cmd_str[256];
+
+	sprintf(cmd_str, "killall -9 %s", program_name);
 	
-	status = system(cmdline);
-	if (status == -1){				
+	kill_status = system(cmd_str);
+	restart_status = system(cmdline);
+	if (kill_status == -1 && restart_status == -1){
 		fprintf(log_stream, "ERROR: execute %s failed\n", cmdline);
 	}
 	else{
-		if(WEXITSTATUS(status) != 0){
-			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(status));
+		if(WEXITSTATUS(kill_status) != 0 && WEXITSTATUS(restart_status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(restart_status));
 		}
 	}
 }
@@ -166,7 +170,7 @@ static void process_keepalive()
         if (MAX_KEEPALIVE_FAILED_TIMES < g_prog_state_list[i].keepalive_failed_times) {
             fprintf(log_stream, "INFO: keepalive timeout, try to restart %s\n", g_daemon_config->prog_list[i].program_name);
             g_prog_state_list[i].keepalive_failed_times = 0;
-            process_restart(g_daemon_config->prog_list[i].cmdline);
+            process_restart(g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].cmdline);
         }
         else {
             g_prog_state_list[i].keepalive_failed_times++;
@@ -193,31 +197,30 @@ static void process_monitor()
         fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
     	ret = process_status_get(g_daemon_config->prog_list[i].program_name);    
-    	if(ret != 0) {
-			fprintf(log_stream, "ERROR: can't get program %s's status, now try to restart", g_daemon_config->prog_list[i].program_name);
-    		process_restart(g_daemon_config->prog_list[i].cmdline);
+    	if(ret == 0) {
+			fprintf(log_stream, "INFO: get program %s's status success\n", g_daemon_config->prog_list[i].program_name);
+
+			/* try to check program's resource */
+			ret = process_pid_get(g_daemon_config->prog_list[i].program_name, &pid);
+       		if (ret == 0) {
+        		process_mem_rate_get(pid, &memvalue, &memrate);
+           		//cpurate = process_cpu_rate_get(pid);   
+           		memrate = memrate * 100;
+				g_prog_state_list[i].memrate = memrate;
+	       		fprintf(log_stream, "INFO: program %s used %ldM memory, memory rate is : %f%%\n\n", g_daemon_config->prog_list[i].program_name, memvalue/1000, memrate);
+        	}
+			else {
+				fprintf(log_stream, "ERROR: can't get program %s's memory info\n\n", g_daemon_config->prog_list[i].program_name);
+    		}
+    	}
+		else {
+			fprintf(log_stream, "ERROR: can't get program %s's status, now try to restart\n", g_daemon_config->prog_list[i].program_name);
+    		process_restart(g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].cmdline);
 			g_prog_state_list[i].reboot_times++;
             g_prog_state_list[i].uptime = time(NULL);
-    	}
-		else {
-			fprintf(log_stream, "INFO: get program %s's status success\n", g_daemon_config->prog_list[i].program_name);
 		}
-        
-        /* try to check program's resource */
-        ret = process_pid_get(g_daemon_config->prog_list[i].program_name, &pid);
-       	if (-1 != ret) {
-        	process_mem_rate_get(pid, &memvalue, &memrate);
-           	//cpurate = process_cpu_rate_get(pid);   
-           	memrate = memrate * 100;
-			g_prog_state_list[i].memrate = memrate;
-	       	fprintf(log_stream, "INFO: program %s used %ldM memory, memory rate is : %f%%\n\n", g_daemon_config->prog_list[i].program_name, memvalue/1000, memrate);
-        }
-		else {
-			fprintf(log_stream, "ERROR: can't get program %s's memory info\n\n", g_daemon_config->prog_list[i].program_name);
-    	}
     }
 }
-
 
 static int process_data_receive(char *ptr)
 {
