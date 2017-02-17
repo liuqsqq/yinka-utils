@@ -52,21 +52,21 @@ program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
 static void handle_signal(int sig)
 {
 	if (sig == SIGINT) {
-        fprintf(log_stream, "Debug: stopping daemon ...\n");
+        fprintf(log_stream, "INFO: stopping daemon ...\n");
 		running = 0;
 		/* Reset signal handling to default behavior */
 		signal(SIGINT, SIG_DFL);
-        fprintf(log_stream, "here\n");
+        fprintf(log_stream, "INFO: reset signal handing to default behavior\n");
 	} 
 	else if (sig == SIGHUP) {
 		//read_conf_file();
 	} 
     else if (sig == SIGCHLD) {
-        fprintf(log_stream, "Debug: received SIGCHLD signal\n");
+        fprintf(log_stream, "INFO: received SIGCHLD signal\n");
 	}
 	//else if (sig == SIGTEST)
 	else if (sig == SIGTERM) {
-	    fprintf(log_stream, "Debug: receievd SIGTERM signal\n");
+	    fprintf(log_stream, "INFO: receievd SIGTERM signal\n");
         //todo
 	}
 }
@@ -89,7 +89,7 @@ static int read_conf_file()
 	conf_file = fopen(conf_file_name, "r");
 
 	if (conf_file == NULL) {
-        fprintf(log_stream, "Can not open config file: %s, error: %s\n",
+        fprintf(log_stream, "ERROR: Can not open config file: %s, error: %s\n",
                 conf_file_name, strerror(errno));
 		return -1;
 	}
@@ -301,15 +301,16 @@ static int process_data_receive(char *ptr)
                                     g_daemon_config->prog_list[type-1].dameon_switch = false;
                                 else if (control_cmd->data[0] == 0x02) {
                                    //get program's status
-                                   fprintf(log_stream, "Prog_name:%s\n", g_prog_state_list[type-1].prog_name);   
-                                   fprintf(log_stream, "Version:%d\n", g_prog_state_list[type-1].version);   
-                                   fprintf(log_stream, "Uptime:%ld\n", g_prog_state_list[type-1].uptime);
-                                   fprintf(log_stream, "Memrate:%f\n", g_prog_state_list[type-1].memrate);
-                                   fprintf(log_stream, "Cpurate:%f\n", g_prog_state_list[type-1].cpurate);
-                                   fprintf(log_stream, "Reboot_times:%d\n\n", g_prog_state_list[type-1].reboot_times);
+                                   fprintf(log_stream, "INFO: Prog_name:%s\n", g_prog_state_list[type-1].prog_name);
+                                   fprintf(log_stream, "INFO: Version:%d\n", g_prog_state_list[type-1].version);
+                                   fprintf(log_stream, "INFO: Uptime:%ld\n", g_prog_state_list[type-1].uptime);
+                                   fprintf(log_stream, "INFO: Memrate:%f\n", g_prog_state_list[type-1].memrate);
+                                   fprintf(log_stream, "INFO: Cpurate:%f\n", g_prog_state_list[type-1].cpurate);
+                                   fprintf(log_stream, "INFO: Reboot_times:%d\n\n", g_prog_state_list[type-1].reboot_times);
                                 }
                                 if ((control_cmd->data[0] == 0x01) || (control_cmd->data[0] == 0x02))
-                                    fprintf(log_stream, "Control cmd:%s program %s's dameon\n",g_daemon_config->prog_list[type-1].dameon_switch?"open":"close",\
+                                    fprintf(log_stream, "INFO: Control cmd:%s program %s's dameon\n",
+                                    g_daemon_config->prog_list[type-1].dameon_switch?"open":"close",
                                     g_daemon_config->prog_list[type-1].program_name);
                             }
                             else if (type == 0xffff) {
@@ -326,7 +327,7 @@ static int process_data_receive(char *ptr)
                                 else if (control_cmd->data[0] == 0x02) {
                                     //get all program's status
                                 } 
-                                fprintf(log_stream, "Control cmd:close all programs' dameon\n");
+                                fprintf(log_stream, "INFO: Control cmd:close all program's dameon\n");
                             }
 
                             control_cmd_data_len += ntohs(control_cmd->len);
@@ -410,7 +411,7 @@ static int yinka_dameon_init()
 
     return 0;
 }
-void main(int argc, char *argv[])
+int main()
 {
     int delay = 0;
 	int ret = 0;
@@ -465,5 +466,5 @@ void main(int argc, char *argv[])
         g_daemon_config = NULL;
     }
     
-    fprintf(log_stream, "INFO: daemon exit\n");
+    exit(EXIT_SUCCESS);
 }
