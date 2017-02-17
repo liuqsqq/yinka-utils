@@ -128,7 +128,6 @@ static void handle_signal(int sig)
         fprintf(log_stream, "INFO: reset signal handing to default behavior\n");
 	} 
 	else if (sig == SIGHUP) {
-		fprintf(log_stream, "DEBUG: received SIGHUP signal\n");
 		if(!read_conf_file()){
 			fprintf(log_stream, "INFO: reload daemon config\n");
 		}
