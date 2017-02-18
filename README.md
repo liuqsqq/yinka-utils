@@ -9,8 +9,8 @@
 
 	# set process name and monitor status by on/off
 	[yinka-terminal]
-	cmdline = yinka
-	program_name = yinka
+	cmdline = cmdline &
+	program_name = process_name
 	switch = on
 
 ## how to build
