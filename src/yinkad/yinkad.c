@@ -44,7 +44,6 @@ static int running = 0;
 /* typedef global config struct */
 daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
-int i;
 /*
  *  Read configuration from config file
  */
