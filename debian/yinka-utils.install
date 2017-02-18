@@ -1,0 +1,2 @@
+debian/yinkad.conf /etc
+debian/yinkad.service /lib/systemd/system
