@@ -1,6 +1,6 @@
 [Unit]
 Description=yinka daemon server
-After=getty@tty1.service
+After=network.target
 
 [Service]
 Type=simple
@@ -12,4 +12,4 @@ ExecStart=/usr/local/bin/yinkad
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
-WantedBy=multi-user.service
+WantedBy=multi-user.target
