@@ -1,0 +1,15 @@
+[Unit]
+Description=yinka daemon server
+After=getty@tty1.service
+
+[Service]
+Type=simple
+User=1000
+Group=1000
+Environment="DISPLAY=:0.0"
+PassEnvironment=DISPLAY
+ExecStart=/usr/local/bin/yinkad
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.service
