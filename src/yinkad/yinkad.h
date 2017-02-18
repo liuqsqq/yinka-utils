@@ -18,10 +18,25 @@
 #ifndef YINKAD_H
 #define YINKAD_H
 
-#define MAX_DAMEON_PROGRAMS_NUMS		2
-#define MAX_KEEPALIVE_FAILED_TIMES 		10
-#define DEFAULT_DELAY   				1
-#define YINKA_DAEMON_PORT  				12332 
+#define MAX_DAMEON_PROGRAMS_NUMS		(2)
+#define MAX_KEEPALIVE_FAILED_TIMES 		(10)
+#define DEFAULT_DELAY   				(1)
+#define YINKA_DAEMON_PORT  				(12332) 
+
+#define MAX_STR_LEN   (64)
+#define MAX_BUFFER_LEN   (512)
+
+#define YINKA_PRINT     (1)
+#define YINKA_ADS       (2)
+#define YINKA_ALL       (0xffff)
+
+#define DAEMON_ON       (1)
+#define DAEMON_OFF      (0)
+#define DAEMON_GETINFO  (2)
+
+#define TYPE_CONTROL_CMD       (0)
+#define TYPE_KEEPALIVE         (1)
+#define TYPE_RES_STATISTIC     (2)
 
 #define DEFAULT_CONF_FILE_PATH "/etc/yinkad.conf"
 
@@ -38,9 +53,9 @@ typedef struct {
 
 typedef struct {
     int version;
-    char *prog_name;
-    float cpurate;
-    float memrate;
+    char prog_name[MAX_STR_LEN];
+    int cpurate;
+    int memrate;
     long uptime;
     int reboot_times;
     int keepalive_failed_times; 
