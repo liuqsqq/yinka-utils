@@ -23,11 +23,11 @@
 #define DEFAULT_DELAY   				1
 #define YINKA_DAEMON_PORT  				12332
 
-#define MAX_STR_LEN     64   
+#define MAX_STR_LEN         64   
 #define MAX_BUFFER_LEN      512
 
 #define YINKA_PRINT     1
-#define YINKA_ADS       2
+#define YINKA_PLAYER    2
 #define YINKA_ALL       0xffff
 
 #define DAEMON_ON       1
@@ -41,8 +41,8 @@
 #define DEFAULT_CONF_FILE_PATH      "/etc/yinkad.conf"
 
 char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
-						"yinka-terminal", 
-						"ads"
+						"autoprint", 
+						"player"
 };
 
 typedef struct {

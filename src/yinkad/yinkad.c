@@ -315,7 +315,7 @@ static int process_data_receive(char *ptr)
                             type = ntohs(control_cmd->type);
                             control_cmd_data_len += sizeof(unsigned short);
                             control_cmd_data_len += sizeof(unsigned short);                  
-                            if ( (type == YINKA_PRINT) || (type == YINKA_ADS)) {
+                            if ( (type == YINKA_PRINT) || (type == YINKA_PLAYER)) {
                                 if (control_cmd->data[0] == DAEMON_ON)
                                     g_daemon_config->prog_list[type-1].dameon_switch = true;
                                 else if (control_cmd->data[0] == DAEMON_OFF)
