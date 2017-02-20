@@ -44,6 +44,7 @@ static int running = 0;
 /* typedef global config struct */
 daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
+
 /*
  *  Read configuration from config file
  */
@@ -227,9 +228,7 @@ int send_msg_to_daemon_client(struct sockaddr_in *clientAddr, program_state_t* p
     int ret = 0;
 
     if ((clientAddr == NULL) || (proram_statistic == NULL))
-    {
         return -1;
-    }
  
 
     ptemp->type = htons(TYPE_RES_STATISTIC);
@@ -241,8 +240,7 @@ int send_msg_to_daemon_client(struct sockaddr_in *clientAddr, program_state_t* p
 
     buffer_len += sizeof(unsigned short);
 
-    for (int j = 0; j < prog_nums; j++)
-    {
+    for (int j = 0; j < prog_nums; j++){
         memcpy(pvalue->prog_name, proram_statistic[j].prog_name, MAX_STR_LEN);
         pvalue->version = htonl(proram_statistic[j].version);
         pvalue->uptime = htonl(proram_statistic[j].uptime);
@@ -258,15 +256,13 @@ int send_msg_to_daemon_client(struct sockaddr_in *clientAddr, program_state_t* p
     
     #if 0
     fprintf(log_stream, "\nSend data is :\n");
-    for (int i = 0; i < buffer_len; i++)
-    {
+    for (int i = 0; i < buffer_len; i++){
         fprintf(log_stream, "%2x ", buffer[i]);
     }
     #endif
     ret = sendto(g_yinka_daemon_sock, buffer, buffer_len, 0, \
         (struct sockaddr*)clientAddr, sizeof(struct sockaddr_in));
-    if (ret < 0)
-    {
+    if (ret < 0){
         return -1;
     }
     return 0;
@@ -491,8 +487,7 @@ static int yinka_dameon_init()
     log_stream = stderr;
     running = 0;
 	
-	for (int i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++)
-    {
+	for (int i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++){
         memcpy(g_prog_state_list[i].prog_name, prog_names[i], strlen(prog_names[i]));
         g_prog_state_list[i].prog_name[strlen(prog_names[i])] = '\0';
 
