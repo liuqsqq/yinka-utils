@@ -38,7 +38,7 @@
 #define TYPE_KEEPALIVE         1
 #define TYPE_RES_STATISTIC     2
 
-#define DEFAULT_CONF_FILE_PATH      "/etc/yinkad.conf"
+#define DEFAULT_CONF_FILE_PATH      "/etc/yinka/yinkad.conf"
 
 char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 						"autoprint", 
