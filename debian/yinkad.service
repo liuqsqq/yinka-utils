@@ -7,8 +7,8 @@ Type=simple
 User=1000
 Group=1000
 Environment="DISPLAY=:0.0"
-PassEnvironment=DISPLAY
-ExecStart=/usr/local/bin/yinkad
+PassEnvironment=
+ExecStart=/usr/bin/yinkad
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
