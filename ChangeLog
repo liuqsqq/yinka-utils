@@ -1,0 +1,297 @@
+commit bee98d352e79c62b40d1e02db8b6222709d45d59
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Feb 22 14:28:38 2017 +0800
+
+    fix the file open error
+    once open the file error, the *fp won't close
+
+commit 1f31e54fd61dc197b751e300ff6f44bc7c073390
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 20 13:50:50 2017 +0800
+
+    change config file path to /etc/yinka
+
+commit f895569fa17ecfbb6f723da9bd1577a97480f07f
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 20 13:43:57 2017 +0800
+
+    rename yinka-terminal and ads
+
+commit e9f9bbc8d255ef447a8b09e1887319150dbff25e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 20 13:01:13 2017 +0800
+
+    clean up the code merge from liuqs
+
+commit 88e49a5cbafe676319a8b341977b9a8dccf424ef
+Author: liuqsqq <liuqs@cqporun.com>
+Date:   Mon Feb 20 11:39:28 2017 +0800
+
+    modify some formats (#2)
+    
+    * 	modified:   yinkad.c
+    	modified:   yinkad.h
+    
+    * test
+    
+    * test del
+    
+    * modify some formats
+
+commit 2fe5587c08fe105f552b8fab3bbb78d51498877e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 20 09:14:09 2017 +0800
+
+    modified yinkad.service to match debian package install path
+
+commit 56634acc615ed073c194b2da399a876186ba692a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sat Feb 18 15:26:57 2017 +0800
+
+    fix yinkad service can't enable auto start when login
+
+commit 183c0125cf71ce7274dabc298a227286b32519a2
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sat Feb 18 14:04:41 2017 +0800
+
+    build yinkad.conf and service file to deb package
+
+commit ac75405cb9eeb61448438da939083d26c208383f
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sat Feb 18 14:00:16 2017 +0800
+
+    add a service rules
+
+commit 0cc0a9d1e3fac7b428b9098736bf05c851df39ac
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sat Feb 18 13:58:48 2017 +0800
+
+    move yinkad.conf to debian dir
+
+commit 3a6426901c2e037d992a745387edb6c4d2b31315
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 17:50:27 2017 +0800
+
+    remove debug message
+
+commit 61fbf2c6eefd47e8e3efbb649ca68e92381dbe95
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 17:36:37 2017 +0800
+
+    support dynamic change config file by reload
+
+commit dae738a307f11c542fcf3eab9fc046d698385542
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 16:58:21 2017 +0800
+
+    remove SIGTREM signal handle
+
+commit 872fd53d5d4b2640da4efc3e8c86e4f4d3a5927b
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 16:19:48 2017 +0800
+
+    fix the print error when process status not get
+
+commit 25bc6455224bb7bba96543389bf7fb13198a13a7
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 16:09:07 2017 +0800
+
+    fix fclose error on process info get
+
+commit 958eaa37e7023732d2eccba83ebd36382355d1ba
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 09:21:02 2017 +0800
+
+    move system(cmdline) to a single place
+
+commit 10426159ea17bcf8478fa7b5543e57a1caa1f73b
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 17 08:56:31 2017 +0800
+
+    change some log_stream print style
+
+commit e2bc219cd2e828ad00e23c0e6c609dbfd0d42b12
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Thu Feb 16 17:06:37 2017 +0800
+
+    move define and typedef to header file
+
+commit fae10c13024b26e3987db2c2ce6b4b28799f5b4c
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Thu Feb 16 16:46:29 2017 +0800
+
+    add a monitor for program keep alive
+
+commit 3884c46cfd7e20dc179c7670176682b5030bd08b
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Thu Feb 16 15:13:45 2017 +0800
+
+    remove none used header files
+
+commit 6e72019c91c9fc5595a8928e308191863b03e579
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Thu Feb 16 14:45:07 2017 +0800
+
+    fix memory free of the global value
+
+commit 47b7261dcb858429df21ef046383f6fc65b6aed8
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:37:30 2017 +0800
+
+    add author into debian control
+
+commit 0b08fefd34f13c033f0ab7788e71e184b953d1e7
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:23:23 2017 +0800
+
+    change debian package messages
+
+commit cd622627a2389a897e94b9034dd8c9011de7c74e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:10:51 2017 +0800
+
+     update readme
+
+commit 124364cbcbf7bd262e5a4b1a40839441e0305bc1
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:08:10 2017 +0800
+
+    update README.md about deb package cmdline
+
+commit 7a5c6f4c5421a43ef69c94071872a539c9ce137f
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:06:50 2017 +0800
+
+    update .gitignore to match debian rules
+
+commit 8dcb1456159cf8cb1c01c32a1cf921517b0672a8
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 16:01:15 2017 +0800
+
+    initial debian rules
+
+commit cef3ef64584c9b73ee3992e154fce0da73ce95fe
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 15:34:40 2017 +0800
+
+    remove .dep cache
+
+commit 37027340743432176c24b01444a00f394052a75a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 15:30:11 2017 +0800
+
+    remove m4 cache file
+
+commit ba9a92bfdeecde777ded96a4b3a95107c1177f1c
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 15:07:40 2017 +0800
+
+    udpate readme
+
+commit b03edc3ffe9394d9b01c83b544351b425fc7285a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 15:06:05 2017 +0800
+
+    add a README
+
+commit a57505b880ceadb0e09eba867b63a715e030c264
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 14:49:36 2017 +0800
+
+    delete automake files and use autogen instead
+
+commit de3f45e210f532ea385b2ecc308c85a92e762fe0
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 14:27:23 2017 +0800
+
+    fix an print error
+
+commit 547903b9b264c3a01f8d08b530f4ad89f70f38e9
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 13:54:22 2017 +0800
+
+    rename debug log to info and add some error log
+
+commit 643615b82fc7f90cec0ae131cf648f7fb6898270
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 13:35:37 2017 +0800
+
+    update Makefile.am to match process_info.c name
+
+commit 8f0ecf143c16bf3ffadfe87d12cea3053f897c3f
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 13:33:25 2017 +0800
+
+    rename process.h to process_info.h
+
+commit 6d0c863a49fa5be977d17ade8b6c009e480f6f99
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 10:51:05 2017 +0800
+
+    fixed buffer overflow detected error
+
+commit 8cdf687152c0f31151e55c1bc468118feda3268e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 13 10:36:06 2017 +0800
+
+    update source
+
+commit 6d13fb1a60b0b5e50fe25b1cbd46cf379df6629c
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 10 16:27:41 2017 +0800
+
+    update source and add Makefile.am etc
+
+commit 0f128fef261d9278eb95d6513f30c00b7aa238fc
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Fri Feb 10 16:26:13 2017 +0800
+
+    update .gitignore to match autotools
+
+commit adf712050333e24281fa8db8af2ace52aad0699d
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Feb 8 13:22:34 2017 +0800
+
+    update the source repo
+
+commit 6fa189e159cfbffed65150c26744e7064245f5f2
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 6 16:26:15 2017 +0800
+
+    use cmake to build this src
+
+commit 2dba6e654081df1f262bf298a275fc15a11932c5
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 6 13:54:20 2017 +0800
+
+    add a daemon for yinka web program
+
+commit 8a761d67b5519bbb072389c9215200a7e1d69fa4
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 6 13:53:20 2017 +0800
+
+    add a daemon for ads
+
+commit b8cf0386434a3a0224e71bff244e0b3a2d8b0a15
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Feb 6 13:52:27 2017 +0800
+
+    change the daemon interface
+
+commit e3e16201696957ae9bcc5dcd513bff32a421d183
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sun Feb 5 16:50:53 2017 +0800
+
+    rm initd and typedef a struct to init daemon
+
+commit d1de14eec1af0284c154e9176f0987e709c7530d
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Sun Feb 5 11:22:08 2017 +0800
+
+    init repo
+
+commit 9478bbc2dc7fb1931bed4c528eaf25fc27cfd34c
+Author: Steven Lee <geekerlw@gmail.com>
+Date:   Sat Feb 4 16:29:33 2017 +0800
+
+    Initial commit
