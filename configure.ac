@@ -17,15 +17,18 @@ LT_PREREQ([2.2.6])
 LT_INIT([disable-static])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h limits.h stdlib.h string.h syslog.h unistd.h])
+AC_CHECK_HEADERS([pthread.h sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_PID_T
 
+# Checks for tools.
+AC_CHECK_TOOL([HAVE_SHELL_TOOL], [shc], 0)
+
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset strchr strdup strerror])
+AC_CHECK_FUNCS([memset strdup strerror])
 
 AC_CONFIG_FILES([
 Makefile
