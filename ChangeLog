@@ -1,3 +1,15 @@
+commit 01a27b0844f8b3fe46e9422cb41905b189c862f4
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Feb 22 16:22:43 2017 +0800
+
+    debian: update to 1.0-1ubuntu1
+
+commit dd3630b22a798e506e24e5145397ee463a5de754
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Feb 22 16:04:32 2017 +0800
+
+    write commit log into ChangeLog
+
 commit bee98d352e79c62b40d1e02db8b6222709d45d59
 Author: geekerlw <geekerlw@gmail.com>
 Date:   Wed Feb 22 14:28:38 2017 +0800

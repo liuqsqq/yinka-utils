@@ -1,4 +1,4 @@
-yinka-utils (1.0-1ubuntu1) UNRELEASED; urgency=medium
+yinka-utils (1.0-1ubuntu1) unstable; urgency=medium
 
   * pre release the package only with yinka daemon
 
