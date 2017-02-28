@@ -2,7 +2,10 @@ Source: yinka-utils
 Section: admin
 Priority: optional
 Maintainer: Steven Lee <geekerlw@gmail.com>
-Build-Depends: debhelper (>=9),autotools-dev
+Build-Depends: 
+	debhelper (>=9),
+	autotools-dev,
+	shc
 Standards-Version: 3.9.6
 Homepage: https://github.com/geekerlw
 Vcs-Git: https://github.com/geekerlw/yinka-utils.git
@@ -10,6 +13,8 @@ Vcs-Browser: https://github.com/geekerlw/yinka-utils.git
 
 Package: yinka-utils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: 
+	${shlibs:Depends},
+	${misc:Depends},
 Description: yinka tool
  yinka-utils contains some useful tools for yinka board
