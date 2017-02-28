@@ -36,6 +36,7 @@ src/Makefile
 src/utils/Makefile
 src/yinkad/Makefile
 scripts/Makefile
+data/Makefile
 ])
 
 AC_OUTPUT
