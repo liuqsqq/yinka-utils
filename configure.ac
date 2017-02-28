@@ -4,7 +4,7 @@
 AC_PREREQ([2.69])
 AC_INIT([yinka-utils], [1.0], [https://github.com/geekerlw/yinka-utils])
 AM_INIT_AUTOMAKE([1.0])
-AC_CONFIG_SRCDIR([src/yinkad/yinkad.c])
+AC_CONFIG_SRCDIR([autogen.sh])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -27,9 +27,12 @@ AC_TYPE_PID_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strchr strdup strerror])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/utils/Makefile
 src/yinkad/Makefile
+scripts/Makefile
 ])
+
+AC_OUTPUT
