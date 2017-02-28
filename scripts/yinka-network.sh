@@ -14,14 +14,13 @@ function netstat_check () {
     	fi
 	done
 	if [ $cnt -gt 10 ]; then
-		echo "network change failed, try again now"
+	echo "try aggin"
     	network_change
 	fi
 }
 
 function network_change () {
 	if [ $OPTION == "4g" ]; then
-		service wicd stop
 		ifconfig wlan0 down
 		ifconfig enx0c5b8f279a64 up
 		dhclient enx0c5b8f279a64
@@ -31,6 +30,7 @@ function network_change () {
 		service wicd restart
 	else
 		echo "none support network type"
+		exit 1
 	fi
 }
 
