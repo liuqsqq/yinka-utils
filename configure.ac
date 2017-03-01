@@ -32,15 +32,12 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strdup strerror])
 
 # Flags and lib configure
-AC_SUBST(PTHREAD_LIBS, -lpthread)
+AC_SUBST(systemddir, /lib/systemd/system)
+AC_SUBST(GENERAL_LIBS, -lpthread)
 
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.9.3)
 AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
-
-#PKG_CHECK_MODULES(PTHREAD, libpthread)
-#AC_SUBST(PTHREAD_CFLAGS)
-#AC_SUBST(PTHREAD_LIBS)
 
 PKG_CHECK_MODULES(CURL, libcurl >= 7.47.0)
 AC_SUBST(CURL_CFLAGS)

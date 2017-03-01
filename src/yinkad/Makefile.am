@@ -5,10 +5,9 @@ yinkad_SOURCES = \
 
 yinkad_CFLAGS = \
 	-I$(top_srcdir)/src	\
-	$(PTHREAD_CFLAGS)	\
 	$(NULL)
 
 yinkad_LDADD = \
 	$(top_builddir)/src/utils/libyinkad.la \
-	$(PTHREAD_LIBS)	\
+	$(GENERAL_LIBS)	\
 	$(NULL)

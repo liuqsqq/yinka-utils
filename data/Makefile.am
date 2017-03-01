@@ -1,2 +1,7 @@
 dist_sysconf_DATA = \
-	yinkad.conf
+	yinkad.conf		\
+	$(NULL)
+
+dist_systemd_DATA = \
+	yinkad.service	\
+	$(NULL)
