@@ -5,7 +5,8 @@ Maintainer: Steven Lee <geekerlw@gmail.com>
 Build-Depends: 
 	debhelper (>=9),
 	autotools-dev,
-	shc
+	shc,
+	pkg-config
 Standards-Version: 3.9.6
 Homepage: https://github.com/geekerlw
 Vcs-Git: https://github.com/geekerlw/yinka-utils.git
