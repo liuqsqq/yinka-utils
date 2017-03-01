@@ -21,7 +21,7 @@ Depends:
 	${shlibs:Depends},
 	${misc:Depends},
 	libxml2,
-	libjson-c3,
+	libjson-c2,
 	libcurl4-openssl-dev
 Description: yinka tool
  yinka-utils contains some useful tools for yinka board
