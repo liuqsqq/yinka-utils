@@ -21,6 +21,7 @@ function netstat_check () {
 
 function network_change () {
 	if [ $OPTION == "4g" ]; then
+		service wicd stop
 		ifconfig wlan0 down
 		ifconfig enx0c5b8f279a64 up
 		dhclient enx0c5b8f279a64
