@@ -6,7 +6,10 @@ Build-Depends:
 	debhelper (>=9),
 	autotools-dev,
 	shc,
-	pkg-config
+	pkg-config,
+	libxml2-dev,
+	libjson-c-dev,
+	libcurl4-openssl-dev
 Standards-Version: 3.9.6
 Homepage: https://github.com/geekerlw
 Vcs-Git: https://github.com/geekerlw/yinka-utils.git
@@ -17,5 +20,8 @@ Architecture: any
 Depends: 
 	${shlibs:Depends},
 	${misc:Depends},
+	libxml2,
+	libjson-c3,
+	libcurl4-openssl-dev
 Description: yinka tool
  yinka-utils contains some useful tools for yinka board

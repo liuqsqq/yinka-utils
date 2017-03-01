@@ -1,3 +1,99 @@
+commit cd577c9a488e57a091ff977bd1fc212e5895ede3
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 16:00:38 2017 +0800
+
+    scripts: add a script to control keyboard and mouse input
+
+commit d6dd3aa5c8887b6cd2b9d68ae122b41b7fa8ebad
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 15:56:41 2017 +0800
+
+    scripts: fix yinka-network wicd daemon error
+
+commit 487de5e37f82904f5a6009a8e441c0455d50e0f0
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 14:46:26 2017 +0800
+
+    yinkad: rename player parole to PRAdsPlayer
+
+commit cbe023bf053b3cbbb3cda280c57f706136d00875
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 14:32:38 2017 +0800
+
+    updater: add a systemd service file for updater program
+
+commit 47a5398d1aa72e6b0102b1d782832ed66c83248f
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 14:16:35 2017 +0800
+
+    build: mv yinkad.service to data dir
+
+commit da1968b4da1470641b5f1e24d04c5ed652482b3a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 13:21:22 2017 +0800
+
+    update README.md
+
+commit b4b1adc260089dfac9b6a17b6bf6d151bbe5862e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 12:53:53 2017 +0800
+
+    build: use macros instead of manual sets
+
+commit 11a83ea5453ee595460c0feb41e7ea8465e6834a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 12:53:12 2017 +0800
+
+    updater: add an auto update tool
+
+commit 31e578074458fb6b62c3c79f28b75e593e8daedd
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 11:52:14 2017 +0800
+
+    debian: release version 1.0-1ubuntu2
+
+commit 090080688e27118cd0ef34cf93e884c5895e6f38
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 17:14:45 2017 +0800
+
+    scripts: fix yinka-network.sh error '\r'
+
+commit 937b608ad0b42b684e5c105f9aec75f00c14376a
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 17:13:14 2017 +0800
+
+    build: change yinkad.conf to data dir
+
+commit c6c9b3c7f9aaa7338de9c1a57fbad853305c5ea7
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 16:08:31 2017 +0800
+
+    build: update configure.ac to check shell tool
+
+commit e3db818499d3ebba7c67c04026f9e962c2f67b1e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 15:16:34 2017 +0800
+
+    debian: prepare version 1.0-1ubuntu2 build
+
+commit b71f4013d90729feb4d7c8b283c4418d0a5c9982
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 15:11:22 2017 +0800
+
+    build: add build rules for scripts
+
+commit c594995116ba2ae4b51508f576eb71e30fae41fd
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 15:10:09 2017 +0800
+
+    scripts: add scripts update printer_set etc.
+
+commit f4357073a875c3373d1b06c0447163b5884c284b
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Tue Feb 28 14:47:32 2017 +0800
+
+    debian: release version 1.0-1ubuntu1
+
 commit 01a27b0844f8b3fe46e9422cb41905b189c862f4
 Author: geekerlw <geekerlw@gmail.com>
 Date:   Wed Feb 22 16:22:43 2017 +0800
