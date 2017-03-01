@@ -3,5 +3,6 @@ dist_sysconf_DATA = \
 	$(NULL)
 
 dist_systemd_DATA = \
-	yinkad.service	\
+	yinkad.service			\
+	yinka-updater.service 	\
 	$(NULL)
