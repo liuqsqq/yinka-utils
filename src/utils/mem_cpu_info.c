@@ -30,8 +30,7 @@ int process_phy_mem_get(const pid_t pid)
 	FILE *fd;
 	char line_buff[256] = {0};
 	sprintf(file,"/proc/%d/status", pid);
- 
-	//fprintf (stderr, "current pid:%d\n", pid);																								   
+
 	fd = fopen (file, "r");
 
 	char name[32];
@@ -49,9 +48,9 @@ int process_phy_mem_get(const pid_t pid)
 		return vmrss;
 	}
 	else {
+		fclose(fd);
 		return ERROR;
 	}
-	//fprintf (stderr, "====%s£º%d====\n", name, vmrss); 	
 } 
  
 int sys_total_mem_get()
@@ -72,9 +71,9 @@ int sys_total_mem_get()
 		return memtotal;
 	}
 	else {
+		fclose(fd);
 		return ERROR;
 	}
-	//fprintf (stderr, "====%s£º%d====\n", name, memtotal);
 }
  
 void  process_mem_rate_get(pid_t pid, long *memvalue, float *memrate)
@@ -85,7 +84,6 @@ void  process_mem_rate_get(pid_t pid, long *memvalue, float *memrate)
     
     *memvalue = process_mem;
     *memrate = memrate_temp;
-	//fprintf(stderr,"====process mem rate:%.6f\n====", memrate);
 }
 
 const char* get_items(const char* buffer,int ie)
@@ -110,6 +108,7 @@ const char* get_items(const char* buffer,int ie)
 	}
 	return p;
 }
+
 unsigned int process_cpu_time_get(const pid_t pid)
 {
 	char file[64] = {0};
@@ -119,7 +118,6 @@ unsigned int process_cpu_time_get(const pid_t pid)
 	char line_buff[1024] = {0};
 	sprintf(file,"/proc/%d/stat", pid);
  
-//	fprintf (stderr, "current pid:%d\n", pid);																								   
 	fd = fopen (file, "r");
 	if(fgets (line_buff, sizeof(line_buff), fd)!= NULL) { 
 		sscanf(line_buff,"%u", &pt.pid);
@@ -130,9 +128,9 @@ unsigned int process_cpu_time_get(const pid_t pid)
 		return (pt.utime + pt.stime + pt.cutime + pt.cstime);
 	}
 	else {
+		fclose(fd);
 		return ERROR;
 	} 
-	//fprintf (stderr, "====pid%u:%u %u %u %u====\n", pt.pid, pt.utime, pt.stime, pt.cutime, pt.cstime);	
 }
  
  
@@ -151,9 +149,9 @@ unsigned int sys_cpu_time_get()
 		return (st.user + st.nice + st.system + st.idle);
 	}
 	else {
+		fclose(fd);
 		return ERROR;
 	}	 
-	//fprintf (stderr, "====%s:%u %u %u %u====\n", name, st.user, st.nice, st.system, st.idle);		
 }
 
 float process_cpu_rate_get(pid_t pid)

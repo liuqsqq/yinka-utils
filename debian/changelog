@@ -1,3 +1,21 @@
+yinka-utils (1.0-2ubuntu1) UNRELEASED; urgency=medium
+
+  * add updater and xinput control scripts
+
+ -- Steven Lee <geekerlw@gmail.com>  Wed, 01 Mar 2017 16:21:18 +0800
+
+yinka-utils (1.0-1ubuntu2) unstable; urgency=medium
+
+  * add some useful scripts for update printer and network set 
+
+ -- Steven Lee <geekerlw@gmail.com>  Tue, 28 Feb 2017 14:55:29 +0800
+
+yinka-utils (1.0-1ubuntu1) unstable; urgency=medium
+
+  * pre release the package only with yinka daemon
+
+ -- Steven Lee <geekerlw@gmail.com>  Wed, 22 Feb 2017 16:11:11 +0800
+
 yinka-utils (1.0-1) unstable; urgency=medium
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
