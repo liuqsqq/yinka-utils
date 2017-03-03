@@ -34,9 +34,16 @@
  
 #define LINUX_UPDATE_INTERVAL   (60 * 2)
 #define MAX_RAND_SECOND         (60)
- 
+
+#define YINKA_DAEMON_PORT  	    (12332)
 #define YINKA_LINUX_UPDATE_PORT (12333)
+
+#define TYPE_CONTROL_CMD       0
+#define TYPE_KEEPALIVE         1
+#define TYPE_RES_STATISTIC     2
 #define TYPE_UPDATE_CONTROL_CMD  (3)
+
+#define DAEMON_SAFE_RESTART      (3)
  
 struct _update_info_t{
     char type[COMMON_STR_LEN];

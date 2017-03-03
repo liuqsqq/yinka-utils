@@ -46,10 +46,13 @@ static struct _update_info_t update_str_info = {0};
 static struct _update_package_info update_packages_info[UPDATE_MAX] = {0};
 
 static int g_yinka_linux_update_sock = -1;
+static struct sockaddr_in daemon_server_addr;
+
 static FILE *log_stream;
 
 int yinka_linux_update_server_init();
 int  process_linux_update_cmd_data(char *ptr);
+int send_msg_daemon_server(int program_id, int daemon_switch);
 
 /* write update request info */
 size_t write_request_data(void * ptr, size_t size, size_t nmemb, void* stream)  
@@ -76,7 +79,7 @@ size_t write_report_data(void * ptr, size_t size, size_t nmemb, void* stream)
     return (size * nmemb); 
 }
 
-int parse_update_info(char* str_info)
+void parse_update_info(char* str_info)
 {
     json_object *json_update_info = NULL;
     json_object * temp = NULL;
@@ -86,7 +89,6 @@ int parse_update_info(char* str_info)
     
     ret = json_object_object_get_ex(json_update_info, "updatestate", &temp);
     if (ret == TRUE) {    
-        //printf("updatestate = %d\n", json_object_get_int(temp)); 
         update_str_info.update_state = json_object_get_int(temp);
     }
     else {
@@ -96,8 +98,6 @@ int parse_update_info(char* str_info)
     ret = json_object_object_get_ex(json_update_info, "type", &temp);
     if (ret == TRUE) {
         pstr = json_object_get_string(temp);
-        //printf("type = %s\n", pstr);   
-        //strcpy(update_str_info.type, pstr);
         memcpy(update_str_info.type, pstr, strlen(pstr));
         update_str_info.type[strlen(pstr)] = '\0';
     }
@@ -105,24 +105,20 @@ int parse_update_info(char* str_info)
     ret = json_object_object_get_ex(json_update_info, "version", &temp);
     if (ret == TRUE) {
         pstr = json_object_get_string(temp);
-        //printf("version = %s\n", pstr);  
-        //strcpy(update_str_info.type, pstr);
         memcpy(update_str_info.version, pstr, strlen(pstr));
         update_str_info.version[strlen(pstr)] = '\0';  
     }
     
     ret = json_object_object_get_ex(json_update_info, "md5", &temp);
     if (ret == TRUE) {
-        pstr = json_object_get_string(temp);
-        //printf("md5 = %s\n", pstr);   
+        pstr = json_object_get_string(temp); 
         memcpy(update_str_info.md5, pstr, strlen(pstr));
         update_str_info.md5[strlen(pstr)] = '\0'; 
     }
     
     ret = json_object_object_get_ex(json_update_info, "url", &temp);
     if (ret == TRUE) {
-        pstr = json_object_get_string(temp);
-        //printf("url = %s\n", pstr);   
+        pstr = json_object_get_string(temp); 
         memcpy(update_str_info.update_file_url, pstr, strlen(pstr));
         update_str_info.update_file_url[strlen(pstr)] = '\0'; 
     }
@@ -131,7 +127,7 @@ final:
     json_object_put(json_update_info);
 }
 
-int make_json_paras(struct _update_result_t result, char* result_json)
+void make_json_paras(struct _update_result_t result, char* result_json)
 {
     json_object *json=json_object_new_object();
 
@@ -147,7 +143,6 @@ int make_json_paras(struct _update_result_t result, char* result_json)
     strcpy(result_json, str);
     json_object_put(json);
 
-    return 0;
 }
  
 int query_update_info(const char* machine_id)
@@ -160,8 +155,7 @@ int query_update_info(const char* machine_id)
     
     if (machine_id == NULL)
         return -1;
-        //memset(update_info, 0 ,sizeof(update_info));
-        memset(server_url_full, 0, sizeof(server_url_full));
+    memset(server_url_full, 0, sizeof(server_url_full));
     /* In windows, this will init the winsock stuff */ 
 
     /* get a curl handle */ 
@@ -181,7 +175,7 @@ int query_update_info(const char* machine_id)
         res = curl_easy_perform(curl);
         /* Check for errors */ 
         if(res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
+            fprintf(log_stream, "ERROR:curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
             return -1;
         }
@@ -193,7 +187,7 @@ int query_update_info(const char* machine_id)
             parse_update_info(update_info);       
         }
         else {
-            fprintf(stderr, "retcode is %ld \n",retcode); 
+            fprintf(log_stream, "ERROR:retcode is %ld \n",retcode); 
         }
 
     /* always cleanup */ 
@@ -223,7 +217,7 @@ int download_update_file(char* file_path_url)
             system(file_name);
         #endif
         remove(file_path);
-        fprintf(stderr, "%s is exist, rm it\n", file_path);  
+        fprintf(log_stream, "INFO:%s is exist, rm it\n", file_path);  
     }
     
     FILE *fp = fopen(file_path, "ab+");
@@ -243,24 +237,26 @@ int download_update_file(char* file_path_url)
      
         /* Check for errors */ 
         if(return_code != CURLE_OK){
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
+            fprintf(log_stream, "ERROR:curl_easy_perform() failed: %s\n",
             curl_easy_strerror(return_code));
             return -1;
         }
          
         return_code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE , &retcode);
         if ( (return_code == CURLE_OK) && retcode == UPDATE_CODE_SUCCESS ) {
+            #if 0
             double file_size = 0.0;  
             return_code = curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD , &file_size);  
             if((CURLE_OK==return_code) && file_size)  
-                printf("file_size: %0.3fMB.\n", file_size/1024/1024);
+                fprintf(log_stream, "INFO:file_size: %0.3fMB.\n", file_size/1024/1024);
             double downloadSpeed = 0.0;  
             return_code = curl_easy_getinfo(curl, CURLINFO_SPEED_DOWNLOAD , &downloadSpeed);  
             if((CURLE_OK==return_code) && downloadSpeed)  
-                printf("speed: %0.3f kb/s.\n", downloadSpeed/1024);    
+                fprintf(log_stream, "INFO:speed: %0.3f kb/s.\n", downloadSpeed/1024);                
+            #endif
         }
         else {
-            printf("retcode == %ld\n", retcode);
+            fprintf(log_stream, "ERROR:retcode == %ld\n", retcode);
         }
      /* always cleanup */ 
      curl_easy_cleanup(curl);        
@@ -284,8 +280,6 @@ int report_update_result(const char* machine_id, char* para_json_str)
     curl = curl_easy_init();
     if(curl) {
         strcat(server_url_full, update_report_url);
-        // strcat(server_url_full, machine_id);
-        // server_url_full[strlen(server_url_full)] = '\0';
          
         curl_easy_setopt(curl, CURLOPT_URL, server_url_full);         
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_report_data);  
@@ -307,8 +301,7 @@ int report_update_result(const char* machine_id, char* para_json_str)
          
         /* Check for errors */ 
         if(res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+            fprintf(log_stream, "ERROR:curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
             return -1;
         }
 
@@ -318,7 +311,7 @@ int report_update_result(const char* machine_id, char* para_json_str)
             //fprintf(stderr, "report ok,retcode is %ld \n",retcode); 
         }
         else {
-           fprintf(stderr, "retcode is %ld \n",retcode); 
+           fprintf(log_stream, "ERROR:retcode is %ld \n",retcode); 
         }
         /* always cleanup */ 
         curl_easy_cleanup(curl);
@@ -414,7 +407,7 @@ int parse_update_xml (char* xml_path)
     pdoc = xmlReadFile (xml_path, "UTF-8", XML_PARSE_RECOVER);//libxml只能解析UTF-8格式数据
 
     if (pdoc == NULL) {
-        printf ("error:can't open file!\n");
+        fprintf(log_stream, "ERROR:can't open file!\n");
         return -1;
     }
 
@@ -422,7 +415,7 @@ int parse_update_xml (char* xml_path)
     proot = xmlDocGetRootElement (pdoc);
 
     if (proot == NULL) {
-        printf("error: file is empty!\n");
+        fprintf(log_stream, "ERROR:: file is empty!\n");
         return -1;
     }
 
@@ -469,7 +462,7 @@ static int local_version_get(UPDATE_TYPE type, char *version)
  
     fp = fopen (file, "r");
     if (fp == NULL) {
-        fprintf(stderr, "open %s failed\n", file);
+        fprintf(log_stream, "ERROR:open %s failed\n", file);
         return -1;
     }
     if(fgets (line_buff, sizeof(line_buff), fp)!= NULL) {
@@ -508,6 +501,27 @@ int rand_time_get(int rand_range)
     return (rand() % rand_range);  //用rand产生随机数并设定范围
 }
 
+
+/* execute a cmd*/
+int exec_cmdline(char* cmd_str)
+{
+    pid_t status;
+
+	if (cmd_str == NULL)
+        return -1;
+	status = system(cmd_str);
+	if (status == -1){
+		fprintf(log_stream, "ERROR: execute %s failed\n", cmd_str);
+        return -1;
+	}
+	else{
+		if(WEXITSTATUS(status) != 0 && WEXITSTATUS(status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(status));
+            return -1;
+        }
+	}
+    return 0;
+}
 int  yinka_linux_update_init()
 {
     g_yinka_linux_update_sock = -1;
@@ -523,20 +537,20 @@ int  yinka_linux_update_reset()
     memset(&update_str_info, 0, sizeof(update_str_info));
     memset(&update_packages_info, 0, sizeof(update_packages_info));
     if (access(DOWNLOAD_ROOT_PATH, F_OK) != -1) {
-        printf("update start, force to delete /tmp/updatefiles/\n");
+        fprintf(log_stream, "INFO:update start, force to delete /tmp/updatefiles/\n");
         memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
         /* force to delete /tmp/updatefiles/ */
         strcat(tmp_file_path, "rm -rf ");
         strcat(tmp_file_path, DOWNLOAD_ROOT_PATH);
-        system(tmp_file_path);
+        ret = exec_cmdline(tmp_file_path);
     }
     
     ret = mkdir(DOWNLOAD_ROOT_PATH, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (ret != 0 ) {
-        fprintf(log_stream, "create updatefiles path failed, exit\n");
+        fprintf(log_stream, "ERROR:create updatefiles path failed, exit\n");
         return -1;
     }
-    fprintf(log_stream, "/tmp/updatefiles path is not exist, create it\n");
+    fprintf(log_stream, "INFO:/tmp/updatefiles path is not exist, create it\n");
     
     return 0;  
 }
@@ -567,7 +581,7 @@ int process_update(char* machine_id,  int force_update_flag)
     memset(&update_result, 0, sizeof(update_result));
     memset(version, 0, sizeof(version));
     memset(&local_time, 0, sizeof(local_time));   
-    yinka_linux_update_reset();  
+    (void)yinka_linux_update_reset();  
 
     force_update = force_update_flag;    
     strcpy(update_result.machine_id, machine_id);   
@@ -592,24 +606,23 @@ int process_update(char* machine_id,  int force_update_flag)
 
     /* if force_update is valid or update_state is invalid, try to update*/
     if ((force_update == 1) || (update_str_info.update_state != UPDATE_CODE_SUCCESS)){
-        printf("start to download update.tar.gz\n");
+        fprintf(log_stream, "INFO:start to download update.tar.gz\n");
         ret = download_update_file(update_str_info.update_file_url);
         if (ret != -1){
-            printf("download ok, start to check update.tar.gz md5\n");
+            fprintf(log_stream, "INFO:download ok, start to check update.tar.gz md5\n");
             ret = compute_file_md5(update_file_path,str_md5);    
             if (ret != -1){
                 if (strcmp(str_md5, update_str_info.md5) == 0){
-                    printf("md5 check pass,start to tar\n");                      
-                    system(str_tarcmd);  
-                 
+                    fprintf(log_stream, "INFO:md5 check pass,start to tar\n");
+                    (void)exec_cmdline(str_tarcmd);
                     strcat(tmp_file_path, DOWNLOAD_ROOT_PATH);
                     strcat(tmp_file_path, UPDATE_CONFIG_XML);
-                    printf("tar ok, start to parse update.xml\n");
+                    fprintf(log_stream, "INFO:tar ok, start to parse update.xml\n");
                     
                     ret = parse_update_xml(tmp_file_path);
                     if (ret != -1){
                         memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
-                        printf("parse ok, start to execute coresponding cmdline\n");
+                        fprintf(log_stream, "INFO:parse ok, start to execute coresponding cmdline\n");
                         for (int i = 0; i < UPDATE_MAX; i++) {
                             #if 0
                                  printf("this is %d as follows:\n", i);
@@ -622,24 +635,29 @@ int process_update(char* machine_id,  int force_update_flag)
  
                             /* if update_state is true, execute its cmdline*/
                             if (!strcmp("true", update_packages_info[i].update_state)) {
-                                local_version_get(i, version);
+                                (void)local_version_get(i, version);
                                 fprintf(stderr, "version %s\n", version);                                
-                                if ((force_update != 1) && (!strcmp(version, update_packages_info[i].version)))
+                                if ((force_update != 1) && (!strcmp(version, update_packages_info[i].version))){
+                                    fprintf(log_stream, "INFO:version is same to current program,need't update\n");
                                     continue;
-                             
+                                }
+
+                                #if 0
                                 strcat(tmp_file_path, "echo \"cqutprint\" | sudo -S ");
                                 strcat(tmp_file_path, update_packages_info[i].cmdline);
-                                fprintf(stderr, "start to execute %s\n", tmp_file_path);
-                                system(tmp_file_path);
+                                fprintf(log_stream, "INFO:start to execute %s\n", tmp_file_path);
+                                (void)exec_cmdline(tmp_file_path);
                                 memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
-                                #if 0
-                                    fprintf(stderr, "start to execute %s\n", update_packages_info[i].cmdline);
-                                    system(update_packages_info[i].cmdline);
                                 #endif
+                                fprintf(log_stream, "INFO:start to execute %s\n", update_packages_info[i].cmdline);
+                                (void)exec_cmdline(update_packages_info[i].cmdline);
+                                ret = send_msg_daemon_server(i, DAEMON_SAFE_RESTART);
+                                if (ret == -1)
+                                    fprintf(log_stream, "ERROR:send DAEMON_SAFE_RESTART to daemon server failed\n");
                             }
                         } 
                     }
-                    printf("update compete, force to delete /tmp/updatefiles/\n");
+                    fprintf(log_stream, "INFO:update compete, force to delete /tmp/updatefiles/\n");
                     memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
                     #if 0
                         /* force to delete /tmp/updatefiles/ */
@@ -650,15 +668,15 @@ int process_update(char* machine_id,  int force_update_flag)
                     update_result.resultCode = UPDATE_CODE_SUCCESS;
                     strcpy(update_result.resultDescription, "update compete successful");
                     strcpy(update_result.clientVersion, update_str_info.version);
-                    local_time_get(local_time);
+                    (void)local_time_get(local_time);
                     strcpy(update_result.endtime, local_time);
                 }
                 else {
                     update_result.resultCode = UPDATE_CODE_MD5_ERROR;
                     strcpy(update_result.resultDescription, "update failed, md5 check faield");
-                    local_time_get(local_time);
+                    (void)local_time_get(local_time);
                     strcpy(update_result.endtime, local_time);                        
-                    fprintf(stderr, "file md5 is not match,update faield\n");
+                    fprintf(log_stream, "ERROR:file md5 is not match,update faield\n");
                 }
             }
             else {
@@ -666,7 +684,7 @@ int process_update(char* machine_id,  int force_update_flag)
                 strcpy(update_result.resultDescription, "update failed, computer md5  faield");
                 local_time_get(local_time);
                 strcpy(update_result.endtime, local_time); 
-                fprintf(stderr, "compute md5 error,update faield\n");
+                fprintf(log_stream, "ERROR:compute md5 error,update faield\n");
             }        
         }
         else {
@@ -674,40 +692,19 @@ int process_update(char* machine_id,  int force_update_flag)
             strcpy(update_result.resultDescription, "update failed, download update file faield");
             local_time_get(local_time);
             strcpy(update_result.endtime, local_time); 
-            fprintf(stderr, "download_update_file failed\n");
+            fprintf(log_stream, "ERROR:download_update_file failed\n");
         }
-        ret = make_json_paras(update_result, result_json);
+        make_json_paras(update_result, result_json);
         ret = report_update_result(machine_id, result_json);
         if (ret != -1) {
             //fprintf(stderr, "report resultcod = %d\n", ret);
         }
     }
     else {
-        printf("needn't update\n");
+        fprintf(log_stream,"INFO:needn't update\n");
     }
 }
 
-int main(void)
-{
-    int ret = 0;
-    int rand_sec = 0;
-    char machine_id[COMMON_STR_LEN] = {0};
- 
-    curl_global_init(CURL_GLOBAL_ALL);
-
-    ret = yinka_linux_update_init();
- 
-    ret = machine_id_get("CQUT-FABU", machine_id);
- 
-    for(;;){
-        rand_sec = rand_time_get(MAX_RAND_SECOND);
-        sleep(LINUX_UPDATE_INTERVAL + rand_sec);
-        process_update(machine_id, 0);
-    }  
-    curl_global_cleanup();
-    
-    return 0;
-} 
 
 int yinka_linux_update_server_init()
 {
@@ -733,7 +730,12 @@ int yinka_linux_update_server_init()
         perror("bind");
         exit(1);
     } 
- 
+    
+    memset(&daemon_server_addr, 0, sizeof(daemon_server_addr));
+    daemon_server_addr.sin_family = AF_INET;
+    daemon_server_addr.sin_port = htons(YINKA_DAEMON_PORT);
+    daemon_server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    
     pthread_create(&yinka_daemon_thread, NULL, (void *)(&process_linux_update_cmd_data), NULL); 
     return 0;
 }
@@ -765,7 +767,7 @@ int process_linux_update_cmd_data(char *ptr)
         memset(buff, 0 , sizeof(buff));
         nfound = select(max_fd + 1, &set, (fd_set *)0, (fd_set *)0, &timeout);
         if(nfound  < 0) {
-            fprintf(log_stream, "ERR: select error!\n");
+            fprintf(log_stream, "ERROR: select error!\n");
             continue;
         }
      
@@ -800,13 +802,13 @@ int process_linux_update_cmd_data(char *ptr)
                 if (type == TYPE_UPDATE_CONTROL_CMD) {
                     fprintf(log_stream, "INFO:force to update reset now\n");
                     force_update = p_yinka_update->data[0];   
-                    ret = machine_id_get("CQUT-FABU", machine_id);
+                    ret = machine_id_get("FABU2", machine_id);
                     ret = process_update(machine_id, force_update);
                     memset(machine_id, 0, sizeof(machine_id));
                 }
             }
             else {
-                fprintf(log_stream, "ERR:Receive error\n"); 
+                fprintf(log_stream, "ERROR:Receive error\n"); 
                 break;
             }       
         }
@@ -815,3 +817,62 @@ int process_linux_update_cmd_data(char *ptr)
     
     return 0;
 }
+int send_msg_daemon_server(int program_id, int daemon_switch)
+{
+    int x,y;
+    char buffer[MAX_BUFFER];
+    int buffer_len = 0;
+    int ret = 0;
+    
+    char * pstr = NULL;  
+    yinka_linux_update_tlv_t * pvalue = NULL;
+    yinka_linux_update_tlv_t * ptemp = (yinka_linux_update_tlv_t *)buffer;
+    ptemp->type = htons(TYPE_CONTROL_CMD);
+
+    buffer_len += 2 + 2;
+
+    pvalue = (yinka_linux_update_tlv_t *)ptemp->data;
+    pstr =  ptemp->data;
+    if ((program_id != UPDATE_PRINT) && (program_id != UPDATE_PLAYER))
+        return -1;
+    program_id += 1;
+    pvalue->type = htons(program_id);
+    pvalue->len = htons(1);
+    *(char*)pvalue->data = daemon_switch;
+    buffer_len += 2 + 2 + 1;
+
+    ptemp->len = htons(buffer_len - 2 - 2);
+               
+    ret = sendto(g_yinka_linux_update_sock, buffer, buffer_len, 0, \
+        (struct sockaddr*)&daemon_server_addr, sizeof(daemon_server_addr));
+    if (ret < 0)
+    {
+        perror("send failed");
+        return -1;
+    }
+    return 0;
+}
+
+int main(void)
+{
+    int ret = 0;
+    int rand_sec = 0;
+    char machine_id[COMMON_STR_LEN] = {0};
+ 
+    curl_global_init(CURL_GLOBAL_ALL);
+
+    ret = yinka_linux_update_init();
+ 
+    ret = machine_id_get("FABU2", machine_id);
+ 
+    for(;;){
+        rand_sec = rand_time_get(MAX_RAND_SECOND);
+        sleep(LINUX_UPDATE_INTERVAL + rand_sec);
+        process_update(machine_id, 0);
+    }  
+    curl_global_cleanup();
+    
+    return 0;
+} 
+
+
