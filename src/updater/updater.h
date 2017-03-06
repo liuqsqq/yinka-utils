@@ -21,8 +21,8 @@
 #define MAX_BUFFER      (1024)
 #define COMMON_STR_LEN   (64)
  
-#define READ_DATA_SIZE  1024  
-#define MD5_SIZE        16  
+#define READ_DATA_SIZE  (1024)  
+#define MD5_SIZE        (16)  
 #define MD5_STR_LEN     (MD5_SIZE * 2)  
  
 #define DOWNLOAD_ROOT_PATH ("/tmp/updatefiles/")
@@ -30,7 +30,7 @@
 #define UPDATE_CONFIG_XML  ("update.xml")
 #define SOFT_ROOT_PATH  ("/usr/local/soft/")
  
-#define CURL_TIMEOUT (1)
+#define CURL_TIMEOUT (3)
  
 #define LINUX_UPDATE_INTERVAL   (60 * 2)
 #define MAX_RAND_SECOND         (60)
@@ -38,9 +38,9 @@
 #define YINKA_DAEMON_PORT  	    (12332)
 #define YINKA_LINUX_UPDATE_PORT (12333)
 
-#define TYPE_CONTROL_CMD       0
-#define TYPE_KEEPALIVE         1
-#define TYPE_RES_STATISTIC     2
+#define TYPE_CONTROL_CMD       (0)
+#define TYPE_KEEPALIVE         (1)
+#define TYPE_RES_STATISTIC     (2)
 #define TYPE_UPDATE_CONTROL_CMD  (3)
 
 #define DAEMON_SAFE_RESTART      (3)
@@ -78,14 +78,14 @@ typedef enum {
     UPDATE_KERNEL,
     UPDATE_DEBIAN,
     UPDATE_MAX
-}UPDATE_TYPE;
+}update_type;
  
 typedef enum {
     UPDATE_CODE_SUCCESS=200,
     UPDATE_CODE_DOWNLOAD_ERROR = 2000,
     UPDATE_CODE_MD5_ERROR,
     UPDATE_CODE_MAX
-}UPDATE_RESULT_CODE;
+}update_result_code;
  
 typedef struct {
     unsigned short type;

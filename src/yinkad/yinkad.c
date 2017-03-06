@@ -313,11 +313,13 @@ static int process_data_receive(char *ptr)
             recv_bytes = recvfrom(g_yinka_daemon_sock, buff, MAX_BUFFER_LEN, 0, (struct sockaddr*)&client_addr, &client_addr_len);
             if (recv_bytes > 0) {
                 buff[recv_bytes] = 0;
+                #if 0
                 fprintf(log_stream,"INFO: Receive %d bytes\n", recv_bytes); 
                 for (int j = 0; j < recv_bytes; j++)
                 {
                     fprintf(log_stream, "%2x ", buff[j]); 
-                }          
+                } 
+                #endif
                 yinka_daemon_tmp = buff;    
                 while(data_len < recv_bytes) {
                     control_cmd = (yinka_daemon_tlv_t *)yinka_daemon_tmp;
@@ -459,7 +461,6 @@ static int process_data_receive(char *ptr)
                     data_len += value_len;
                     yinka_daemon_tmp += data_len;
                 }
-                //fprintf(log_stream, "\n%s %u says: %s\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), buff);
             }
             else {
                 perror("recv");

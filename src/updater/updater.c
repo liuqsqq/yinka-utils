@@ -364,7 +364,7 @@ int compute_file_md5(const char *file_path, char *md5_str)
     return 0;  
 }  
 
-void store_update_packages_info(xmlNodePtr pcur, UPDATE_TYPE type)
+void store_update_packages_info(xmlNodePtr pcur, update_type type)
 {
     xmlNodePtr nptr=pcur->xmlChildrenNode;
     char *pstr = NULL;
@@ -399,7 +399,7 @@ void store_update_packages_info(xmlNodePtr pcur, UPDATE_TYPE type)
 }
 int parse_update_xml (char* xml_path)
 {
-    UPDATE_TYPE  type = UPDATE_MAX;
+    update_type  type = UPDATE_MAX;
     xmlDocPtr pdoc = NULL;
     xmlNodePtr proot = NULL, pcur = NULL;
     /*****************´ò¿ªxmlÎÄµµ********************/
@@ -451,7 +451,7 @@ int parse_update_xml (char* xml_path)
     return 0;
 }
 
-static int local_version_get(UPDATE_TYPE type, char *version)
+static int local_version_get(update_type type, char *version)
 {
     FILE *fp = NULL;
     char file[COMMON_STR_LEN] = {0};
@@ -483,7 +483,6 @@ static void local_time_get(char* local_time)
     time_t timer = time(NULL);  
     strftime(szBuf, sizeof(szBuf), "%Y-%m-%d %H:%M:%S", localtime(&timer));  
     strcpy(local_time, szBuf);
-    //printf("%s\n", local_time);  
 }
 
 int machine_id_get(char* UUID, char* machine_id)
@@ -641,30 +640,24 @@ int process_update(char* machine_id,  int force_update_flag)
                                     fprintf(log_stream, "INFO:version is same to current program,need't update\n");
                                     continue;
                                 }
-
-                                #if 0
-                                strcat(tmp_file_path, "echo \"cqutprint\" | sudo -S ");
-                                strcat(tmp_file_path, update_packages_info[i].cmdline);
-                                fprintf(log_stream, "INFO:start to execute %s\n", tmp_file_path);
-                                (void)exec_cmdline(tmp_file_path);
-                                memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
-                                #endif
                                 fprintf(log_stream, "INFO:start to execute %s\n", update_packages_info[i].cmdline);
                                 (void)exec_cmdline(update_packages_info[i].cmdline);
-                                ret = send_msg_daemon_server(i, DAEMON_SAFE_RESTART);
-                                if (ret == -1)
-                                    fprintf(log_stream, "ERROR:send DAEMON_SAFE_RESTART to daemon server failed\n");
+                                if ((i == UPDATE_PRINT) || (i == UPDATE_PLAYER)){
+                                    ret = send_msg_daemon_server(i, DAEMON_SAFE_RESTART);
+                                    if (ret == -1)
+                                        fprintf(log_stream, "ERROR:send DAEMON_SAFE_RESTART to daemon server failed\n");
+                                }
                             }
                         } 
                     }
                     fprintf(log_stream, "INFO:update compete, force to delete /tmp/updatefiles/\n");
                     memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
-                    #if 0
-                        /* force to delete /tmp/updatefiles/ */
-                        strcat(tmp_file_path, "rm -rf ");
-                        strcat(tmp_file_path, DOWNLOAD_ROOT_PATH);
-                        system(tmp_file_path);
-                    #endif
+                    
+                    /* force to delete /tmp/updatefiles/ */
+                    strcat(tmp_file_path, "rm -rf ");
+                    strcat(tmp_file_path, DOWNLOAD_ROOT_PATH);
+                    (void)exec_cmdline(tmp_file_path);
+                    
                     update_result.resultCode = UPDATE_CODE_SUCCESS;
                     strcpy(update_result.resultDescription, "update compete successful");
                     strcpy(update_result.clientVersion, update_str_info.version);
@@ -769,15 +762,11 @@ int process_linux_update_cmd_data(char *ptr)
         if(nfound  < 0) {
             fprintf(log_stream, "ERROR: select error!\n");
             continue;
-        }
-     
-    #if 0
+        }    
         else if (nfound == 0)
         {
-            fprintf(log_stream, "\nDebug: select timeout!");
             continue;
         }
-    #endif 
      
         if (FD_ISSET(g_yinka_linux_update_sock, &set)) {        
             recv_bytes = recvfrom(g_yinka_linux_update_sock, buff, MAX_BUFFER, 0, (struct sockaddr*)&clientAddr, &clientAddrlen);
