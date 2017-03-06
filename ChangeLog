@@ -1,3 +1,57 @@
+commit 8f1f4e81708c99a50201fd935e36f46ead94561d
+Merge: b05a7a3 10ac499
+Author: Steven Lee <geekerlw@gmail.com>
+Date:   Mon Mar 6 13:34:34 2017 +0800
+
+    Merge pull request #3 from liuqsqq/master
+    
+    add safe reboot ,force reboot and fix some formats
+
+commit 10ac49964a3e69caeb3395008cb2a3ddd580e34b
+Author: liuqs <liuqs@cqporun.com>
+Date:   Mon Mar 6 11:15:16 2017 +0800
+
+    fix some formats
+
+commit b05a7a370c4c622ddc265707b4d6975e909f0f2e
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Mon Mar 6 10:44:28 2017 +0800
+
+    script: fix file cp error under running state
+
+commit 593df59c763dbeb049166ed18ef41b57abcc41fd
+Author: liuqs <liuqs@cqporun.com>
+Date:   Fri Mar 3 21:18:20 2017 +0800
+
+    add safe reboot, force reboot fuctions; modify some formats
+
+commit a5d4074bfee43f470fcbcedd9b7681ee426bf5cb
+Merge: a239384 ca95f5f
+Author: liuqsqq <liuqs@cqporun.com>
+Date:   Thu Mar 2 15:16:33 2017 +0800
+
+    Merge pull request #1 from geekerlw/master
+    
+    merge liwen's modify
+
+commit a239384d9c3f18e038f8628d75c37f32a3dd2fec
+Author: liuqs <liuqs@cqporun.com>
+Date:   Thu Mar 2 15:14:19 2017 +0800
+
+    fix some conflicts
+
+commit ca95f5f4ea256f3d887f6a73d259ad652d5fc306
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 16:47:32 2017 +0800
+
+    debian: fix package depends
+
+commit a1f39a2fac3fc031f1c5e70000b83aadf5af4857
+Author: geekerlw <geekerlw@gmail.com>
+Date:   Wed Mar 1 16:29:11 2017 +0800
+
+    debian: update to version 1.0-2ubuntu1
+
 commit cd577c9a488e57a091ff977bd1fc212e5895ede3
 Author: geekerlw <geekerlw@gmail.com>
 Date:   Wed Mar 1 16:00:38 2017 +0800
@@ -146,11 +200,36 @@ Date:   Mon Feb 20 11:39:28 2017 +0800
     
     * modify some formats
 
+commit 023440fd2101eb570292fcbbb9a19aeb18cd3196
+Author: liuqs <liuqs@cqporun.com>
+Date:   Mon Feb 20 09:26:34 2017 +0800
+
+    modify some formats
+
 commit 2fe5587c08fe105f552b8fab3bbb78d51498877e
 Author: geekerlw <geekerlw@gmail.com>
 Date:   Mon Feb 20 09:14:09 2017 +0800
 
     modified yinkad.service to match debian package install path
+
+commit 1120757980d073398e07539e8a1865c94d1a4f25
+Author: liuqs <liuqs@cqporun.com>
+Date:   Sat Feb 18 17:15:08 2017 +0800
+
+    test del
+
+commit 0946be50e7eccc4a7ff7fa46a631ed183c23cc15
+Author: liuqs <liuqs@cqporun.com>
+Date:   Sat Feb 18 17:14:05 2017 +0800
+
+    test
+
+commit 71c1dc130efd46392f0223a965564b78d5e1d545
+Author: liuqs <liuqs@cqporun.com>
+Date:   Sat Feb 18 17:08:40 2017 +0800
+
+    	modified:   yinkad.c
+    	modified:   yinkad.h
 
 commit 56634acc615ed073c194b2da399a876186ba692a
 Author: geekerlw <geekerlw@gmail.com>
