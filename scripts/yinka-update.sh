@@ -57,6 +57,7 @@ function kernel_update () {
 	mount /dev/mmcblk2p1 /mnt
 	cp -a /mnt/zImage $backup_dir/kernel/
 	cp -a /mnt/rk3288-firefly.dtb $backup_dir/kernel/
+	rm -rf /mnt/zImage /mnt/rk3288-firefly.dtb
 	cp -a $temp_dir/kernel/* /mnt
 	echo $VERSION > $soft_dir/kernel_version.ver
 	umount /mnt
@@ -67,6 +68,7 @@ function autoprint_update () {
 		rm -rf $backup_dir/autoprint
 	fi
 	cp -a $soft_dir/autoprint $backup_dir/
+	rm -rf $soft_dir/autoprint
 	cp -a $temp_dir/autoprint $soft_dir/
 	echo $VERSION > $soft_dir/autoprint_version.ver
 	ln -sf $soft_dir/autoprint/autoprint /usr/bin/autoprint
@@ -77,6 +79,7 @@ function player_update () {
         rm -rf $backup_dir/player
     fi
 	cp -a $soft_dir/player $backup_dir/
+	rm -rf $soft_dir/player
 	cp -a $temp_dir/player $soft_dir/
 	echo $VERSION > $soft_dir/player_version.ver
 	ln -sf $soft_dir/player/PRAdsPlayer /usr/bin/PRAdsPlayer
