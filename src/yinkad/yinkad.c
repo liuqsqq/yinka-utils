@@ -189,7 +189,15 @@ static void process_monitor()
         if (!g_daemon_config->prog_list[i].dameon_switch) {
             continue;
         }
-        
+
+        if (g_daemon_config->prog_list[i].safe_restart){
+			fprintf(log_stream, "INFO: program %s received update restart cmd, now try to restart\n", g_daemon_config->prog_list[i].program_name);
+    		process_restart(g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].cmdline);
+			g_prog_state_list[i].reboot_times++;
+            g_prog_state_list[i].uptime = time(NULL); 
+            g_daemon_config->prog_list[i].safe_restart = false;
+            continue;
+        }
         /* try to check program is alive, if not ,try to reboot it */
         //fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
@@ -217,10 +225,10 @@ static void process_monitor()
 		}
     }
 }
-int daemon_data_receive(struct sockaddr_in *client_addr, program_state_t* proram_statistic, int prog_nums)
+int daemon_data_send(struct sockaddr_in *client_addr, program_state_t* proram_statistic, int prog_nums)
 {
     int x,y;
-    char buffer[512];
+    char buffer[MAX_BUFFER_LEN];
     int buffer_len = 0;
     char * pstr = NULL;
     program_state_t * pvalue = NULL;
@@ -262,7 +270,7 @@ int daemon_data_receive(struct sockaddr_in *client_addr, program_state_t* proram
 
 static int process_data_receive(char *ptr)
 {
-    char buff[512];
+    char buff[MAX_BUFFER_LEN];
     char *yinka_daemon_tmp= NULL;
     char *control_cmd_tmp = NULL;
     yinka_daemon_tlv_t *control_cmd = NULL;
@@ -281,6 +289,13 @@ static int process_data_receive(char *ptr)
     int client_addr_len;
     client_addr_len = sizeof(client_addr);  
     int send_result = 0;    
+
+    unsigned short program_id;
+    int  time_stramp;
+    unsigned short state;
+
+    int k = 0;
+
     while (1) {
         data_len = 0;
         control_cmd_data_len = 0;
@@ -298,7 +313,13 @@ static int process_data_receive(char *ptr)
             recv_bytes = recvfrom(g_yinka_daemon_sock, buff, MAX_BUFFER_LEN, 0, (struct sockaddr*)&client_addr, &client_addr_len);
             if (recv_bytes > 0) {
                 buff[recv_bytes] = 0;
+                #if 0
                 fprintf(log_stream,"INFO: Receive %d bytes\n", recv_bytes); 
+                for (int j = 0; j < recv_bytes; j++)
+                {
+                    fprintf(log_stream, "%2x ", buff[j]); 
+                } 
+                #endif
                 yinka_daemon_tmp = buff;    
                 while(data_len < recv_bytes) {
                     control_cmd = (yinka_daemon_tlv_t *)yinka_daemon_tmp;
@@ -306,7 +327,14 @@ static int process_data_receive(char *ptr)
                     data_len += sizeof(unsigned short);
                     data_len += sizeof(unsigned short);
                     value_len = ntohs(control_cmd->len);
-                    
+                    #if 0
+                    fprintf(log_stream, "\nDebug:type:%d,len=%d", type, value_len); 
+                    fprintf(log_stream, "\nDebug:value:");
+                    for (int i = 0; i < value_len; i++)
+                    {
+                        fprintf(log_stream, "%2x ", control_cmd->data[i]); 
+                    }
+                    #endif                    
                     /* deal control cmd*/
                     if (type == TYPE_CONTROL_CMD) {
                         control_cmd_tmp = (yinka_daemon_tmp + data_len);
@@ -321,14 +349,7 @@ static int process_data_receive(char *ptr)
                                 else if (control_cmd->data[0] == DAEMON_OFF)
                                     g_daemon_config->prog_list[type-1].dameon_switch = false;
                                 else if (control_cmd->data[0] == DAEMON_GETINFO) {
-                                   //get program's status
-                                   fprintf(log_stream, "INFO: Prog_name:%s\n", g_prog_state_list[type-1].prog_name);
-                                   fprintf(log_stream, "INFO: Version:%d\n", g_prog_state_list[type-1].version);
-                                   fprintf(log_stream, "INFO: Uptime:%ld\n", g_prog_state_list[type-1].uptime);
-                                   fprintf(log_stream, "INFO: Memrate:%f\n", (float)g_prog_state_list[type-1].memrate/1000);
-                                   fprintf(log_stream, "INFO: Cpurate:%f\n", (float)g_prog_state_list[type-1].cpurate/1000);
-                                   fprintf(log_stream, "INFO: Reboot_times:%d\n\n", g_prog_state_list[type-1].reboot_times);
-                                   send_result = daemon_data_receive(&client_addr, &g_prog_state_list[type-1], 1);
+                                   send_result = daemon_data_send(&client_addr, &g_prog_state_list[type-1], 1);
                                    if (send_result != 0)
                                    {
                                        fprintf(log_stream, "ERROR: send program data faield\n");  
@@ -338,6 +359,23 @@ static int process_data_receive(char *ptr)
                                        fprintf(log_stream, "INFO: send program data successed\n");
                                    }
                                 }
+                                else if (control_cmd->data[0] == DAEMON_SAFE_RESTART) {
+                                   fprintf(log_stream, "INFO: start to restart %s safety\n", g_daemon_config->prog_list[type-1].program_name);
+                                   if (g_prog_state_list[type-1].state == IS_BUSY)
+                                       g_daemon_config->prog_list[type-1].safe_restart = true;
+                                   else{
+                                        process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
+                            			g_prog_state_list[type-1].reboot_times++;
+                                        g_prog_state_list[type-1].uptime = time(NULL); 
+                                   }
+
+                                }
+                                else if (control_cmd->data[0] == DAEMON_FORCE_RESTART) {
+                                        fprintf(log_stream, "INFO: start to restart %s forced\n", g_daemon_config->prog_list[type-1].program_name);
+                                        process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
+                            			g_prog_state_list[type-1].reboot_times++;
+                                        g_prog_state_list[type-1].uptime = time(NULL); 
+                                }
                                 if ((control_cmd->data[0] == DAEMON_OFF) || (control_cmd->data[0] == DAEMON_ON))
                                     fprintf(log_stream, "INFO: Control cmd:%s program %s's dameon\n",
                                     g_daemon_config->prog_list[type-1].dameon_switch?"open":"close",
@@ -345,18 +383,18 @@ static int process_data_receive(char *ptr)
                             }
                             else if (type == YINKA_ALL) {
                                 if (control_cmd->data[0] == DAEMON_ON) {
-                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
+                                    for (k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
                                         g_daemon_config->prog_list[k].dameon_switch = true;
                                     }   
                                 }                        
                                 else if (control_cmd->data[0] == DAEMON_OFF) {
-                                    for (int k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
+                                    for (k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
                                        g_daemon_config->prog_list[k].dameon_switch = false;
                                     }   
                                 }   
                                 else if (control_cmd->data[0] == DAEMON_GETINFO) {
                                      //get all program's status
-                                    send_result = daemon_data_receive(&client_addr, g_prog_state_list, MAX_DAMEON_PROGRAMS_NUMS);
+                                    send_result = daemon_data_send(&client_addr, g_prog_state_list, MAX_DAMEON_PROGRAMS_NUMS);
                                     if (send_result != 0) {
                                         fprintf(log_stream, "ERROR: send program data faield\n");  
                                     }
@@ -364,11 +402,38 @@ static int process_data_receive(char *ptr)
                                         fprintf(log_stream, "INFO: send program data successed \n");
                                     }
                                 } 
+                                else if (control_cmd->data[0] == DAEMON_SAFE_RESTART) {
+                                    for (k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
+                                       fprintf(log_stream, "INFO: start to restart %s safety\n", g_daemon_config->prog_list[k].program_name);
+                                       if (g_prog_state_list[k].state == IS_BUSY)
+                                           g_daemon_config->prog_list[k].safe_restart = true;
+                                       else{
+                                            process_restart(g_daemon_config->prog_list[k].program_name, g_daemon_config->prog_list[k].cmdline);
+                                			g_prog_state_list[k].reboot_times++;
+                                            g_prog_state_list[k].uptime = time(NULL); 
+                                       }
+                                    }
+                                }
+                                else if (control_cmd->data[0] == DAEMON_FORCE_RESTART) {
+                                    for (k = 0; k < MAX_DAMEON_PROGRAMS_NUMS; k++) {
+                                        fprintf(log_stream, "INFO: start to restart %s forced\n", g_daemon_config->prog_list[k].program_name);
+                                        process_restart(g_daemon_config->prog_list[k].program_name, g_daemon_config->prog_list[k].cmdline);
+                            			g_prog_state_list[k].reboot_times++;
+                                        g_prog_state_list[k].uptime = time(NULL); 
+                                    }
+                                }
+                                else{
+                                    fprintf(log_stream, "ERROR: DAEMON TYPE is invalid\n");
+                                }
+                                    
+                                    
 				                if ((control_cmd->data[0] == DAEMON_OFF) || (control_cmd->data[0] == DAEMON_ON))
                                     fprintf(log_stream, "INFO: Control cmd:%s all programs' dameon\n", control_cmd->data[0]?"open":"close");
 
                             }
-
+                            else{
+                                break;
+                            }
                             control_cmd_data_len += ntohs(control_cmd->len);
                             control_cmd_tmp += control_cmd_data_len;
                         }
@@ -376,13 +441,26 @@ static int process_data_receive(char *ptr)
                     }
                     /* deal keepalive cmd*/
                     else if (type == TYPE_KEEPALIVE) {
-                        //fprintf(log_stream, "\nDebug:value:%d", ntohl(*((int*)pKeepAlive->data)));
-                        g_prog_state_list[control_cmd->data[0]].keepalive_failed_times = 0; 
+                        fprintf(log_stream, "INFO: keepalive received\n");
+                        keep_alive_t *pKeepAlive = (keep_alive_t*)(yinka_daemon_tmp + data_len);
+                        program_id = ntohs(pKeepAlive->program_id);
+                        time_stramp = ntohl(pKeepAlive->time_stramp);
+                        state = ntohs(pKeepAlive->program_state);
+                        if (program_id < YINKA_MAX){
+                            g_prog_state_list[program_id-1].keepalive_failed_times = 0; 
+                            g_prog_state_list[program_id-1].state = state;
+                        }
+                        else{
+                            fprintf(log_stream, "ERROR: programid is invalid\n");
+                        }
+                            
 					}
+                    else{
+                        break;
+                    }
                     data_len += value_len;
                     yinka_daemon_tmp += data_len;
                 }
-                //fprintf(log_stream, "\n%s %u says: %s\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), buff);
             }
             else {
                 perror("recv");

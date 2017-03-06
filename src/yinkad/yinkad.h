@@ -18,25 +18,23 @@
 #ifndef YINKAD_H
 #define YINKAD_H
 
-#define MAX_DAMEON_PROGRAMS_NUMS        2
-#define MAX_KEEPALIVE_FAILED_TIMES 		10
-#define DEFAULT_DELAY   				1
-#define YINKA_DAEMON_PORT  				12332
+#define MAX_DAMEON_PROGRAMS_NUMS        (2)
+#define MAX_KEEPALIVE_FAILED_TIMES 		(10)
+#define DEFAULT_DELAY   				(1)
+#define YINKA_DAEMON_PORT  				(12332)
 
-#define MAX_STR_LEN         64   
-#define MAX_BUFFER_LEN      512
+#define MAX_STR_LEN         (64)   
+#define MAX_BUFFER_LEN      (512)
 
-#define YINKA_PRINT     1
-#define YINKA_PLAYER    2
-#define YINKA_ALL       0xffff
 
-#define DAEMON_ON       1
-#define DAEMON_OFF      0
-#define DAEMON_GETINFO  2
+#define TYPE_CONTROL_CMD       (0)
+#define TYPE_KEEPALIVE         (1)
+#define TYPE_RES_STATISTIC     (2)
 
-#define TYPE_CONTROL_CMD       0
-#define TYPE_KEEPALIVE         1
-#define TYPE_RES_STATISTIC     2
+#define IS_IDLE         (0)
+#define IS_BUSY         (1)
+
+
 
 #define DEFAULT_CONF_FILE_PATH      "/etc/yinkad.conf"
 
@@ -59,17 +57,42 @@ typedef struct {
     long uptime;
     int reboot_times;
     int keepalive_failed_times; 
+    int state;
 }program_state_t;
 
 typedef struct {
 		char *cmdline;
 		char *program_name;
 		bool dameon_switch;
+        bool safe_restart;
 }program_t;
 
 typedef struct{
 	int delay;
 	program_t prog_list[MAX_DAMEON_PROGRAMS_NUMS];
 }daemon_config_t;
+
+
+typedef struct{
+    unsigned short program_id;
+    int time_stramp;
+    unsigned short program_state;
+}keep_alive_t;
+
+typedef enum {
+    YINKA_PRINT=1,
+    YINKA_PLAYER,
+    YINKA_MAX,
+    YINKA_ALL=0xffff
+}yinka_type;
+
+typedef enum {
+    DAEMON_OFF=0,
+    DAEMON_ON,
+    DAEMON_GETINFO,
+    DAEMON_SAFE_RESTART,
+    DAEMON_FORCE_RESTART,
+    DAEMON_MAX
+}daemon_type;
 
 #endif
