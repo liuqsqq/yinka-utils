@@ -67,9 +67,9 @@ function autoprint_update () {
 	if [ -d "$backup_dir/autoprint" ]; then
 		rm -rf $backup_dir/autoprint
 	fi
-	cp -a $soft_dir/autoprint $backup_dir/
-	rm -rf $soft_dir/autoprint
-	cp -a $temp_dir/autoprint $soft_dir/
+	cp -a $soft_dir/autoprint/resources/app/yinka/*   $backup_dir/autoprint/
+	rm -rf $soft_dir/autoprint/resources/app/yinka/*
+	cp -a $temp_dir/autoprint/* $soft_dir/autoprint/resources/app/yinka/
 	echo $VERSION > $soft_dir/autoprint_version.ver
 	ln -sf $soft_dir/autoprint/autoprint /usr/bin/autoprint
 }
@@ -87,7 +87,7 @@ function player_update () {
 
 function debian_update () {
 	sh $temp_dir/debian/$FILENAME
-	echo $VERSION > $soft_dir/"$FILENAME"_version.ver
+	echo $VERSION > $soft_dir/debian_version.ver
 }
 
 case $OPTION in
