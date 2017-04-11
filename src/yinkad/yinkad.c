@@ -29,6 +29,7 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
 
 #include "yinkad.h"
 #include "../utils/config_read.h"
@@ -137,15 +138,78 @@ static void handle_signal(int sig)
 	}
 }
 
+static int getFatherPid(int pid)
+{
+    char dir[1024]={0};
+    char path[1024] = {0};
+    char buf[1024] = {0};
+    int rpid = 0;
+    int fpid=0;
+    char fpth[1024]={0};
+    struct stat st;
+    ssize_t ret =0;
+
+    sprintf(dir,"/proc/%d/",pid);
+
+    sprintf(path,"%sstat",dir);
+
+    if(stat(path,&st)!=0)
+    {
+        return -2; 
+    }
+
+    memset(buf,0,strlen(buf));
+
+    FILE * fp = fopen(path,"r");
+
+    ret += fread(buf + ret,1,300-ret,fp);
+
+    fclose(fp);
+
+    sscanf(buf,"%*d %*c%s %*c %d %*s",fpth,&fpid);
+
+    fpth[strlen(fpth)-1]='\0';
+
+    if(strcmp(fpth,"bash")!=0 && strcmp(fpth,"sudo")!=0 ) //bash ÖÕ¶Ë  sudo ÖÕ¶Ë
+    {
+        if(fpid==1)
+        {
+            return pid;
+        }
+        else if(fpid==2)
+        {
+            return -1; //ÄÚºËÏß³Ì
+        }
+
+        rpid = GetFatherPid(fpid);
+
+        if(rpid == 0) 
+        {
+           rpid  = pid;
+        }
+    }
+
+    return rpid;
+}
+
 static void process_restart(char *program_name, char *cmdline)
 {
 	pid_t kill_status, restart_status;
 	char cmd_str[256];
-
-	sprintf(cmd_str, "killall -9 %s", program_name);
-	
-	kill_status = system(cmd_str);
-	restart_status = system(cmdline);
+    pid_t pid = 0;
+    pid_t ppid = 0;
+    int ret = -1;
+    ret = process_pid_get(program_name, &pid);
+    if (ret != 0)
+        return;
+    ppid = getFatherPid(pid);   
+    if (ppid <= 0)
+        return;
+    
+    sprintf(cmd_str, "kill %d", ppid);
+    kill_status = system(cmd_str);
+    restart_status = system(cmdline);
+    
 	if (kill_status == -1 && restart_status == -1){
 		fprintf(log_stream, "ERROR: execute %s failed\n", cmdline);
 	}
@@ -155,6 +219,7 @@ static void process_restart(char *program_name, char *cmdline)
 		}
 	}
 }
+
 
 static void process_keepalive()
 {
@@ -441,7 +506,6 @@ static int process_data_receive(char *ptr)
                     }
                     /* deal keepalive cmd*/
                     else if (type == TYPE_KEEPALIVE) {
-                        fprintf(log_stream, "INFO: keepalive received\n");
                         keep_alive_t *pKeepAlive = (keep_alive_t*)(yinka_daemon_tmp + data_len);
                         program_id = ntohs(pKeepAlive->program_id);
                         time_stramp = ntohl(pKeepAlive->time_stramp);
@@ -453,7 +517,7 @@ static int process_data_receive(char *ptr)
                         else{
                             fprintf(log_stream, "ERROR: programid is invalid\n");
                         }
-                            
+                        fprintf(log_stream, "INFO: [%s]keepalive received\n", prog_names[program_id-1]);                              
 					}
                     else{
                         break;
