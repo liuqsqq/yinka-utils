@@ -181,7 +181,7 @@ static int getFatherPid(int pid)
             return -1; //ÄÚºËÏß³Ì
         }
 
-        rpid = GetFatherPid(fpid);
+        rpid = getFatherPid(fpid);
 
         if(rpid == 0) 
         {
@@ -196,16 +196,10 @@ static void process_restart(char *program_name, char *cmdline)
 {
 	pid_t kill_status, restart_status;
 	char cmd_str[256];
-    pid_t pid = 0;
-    pid_t ppid = 0;
-    int ret = -1;
-    ret = process_pid_get(program_name, &pid);
-    if (ret != 0)
-        return;
-    ppid = getFatherPid(pid);   
-    if (ppid <= 0)
-        return;
-    
+    pid_t pid = -1;
+    pid_t ppid = -1;
+    process_pid_get(program_name, &pid);
+    ppid = getFatherPid(pid);     
     sprintf(cmd_str, "kill %d", ppid);
     kill_status = system(cmd_str);
     restart_status = system(cmdline);
