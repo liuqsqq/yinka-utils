@@ -18,24 +18,50 @@ function netstat_check () {
     	network_change
 	fi
 }
-
+function open_wicd_gtk () {
+	wicd-gtk&
+	sleep 1
+	killall -9 devilspie
+	devilspie&	
+}
 function network_change () {
 	if [ $OPTION == "4g" ]; then
-		service wicd stop
-		ifconfig wlan0 down
-		ifconfig enx0c5b8f279a64 up
-		dhclient enx0c5b8f279a64
+		if ifconfig |grep enx0c5b8f279a64  >/dev/null ;then
+			service wicd stop
+			ifconfig wlan0 down
+
+			ifconfig enx0c5b8f279a64 up
+			dhclient enx0c5b8f279a64
+		else
+			exit 1
+		fi
 	elif [ $OPTION == "wifi" ]; then
-		ifconfig enx0c5b8f279a64 down
+		if ifconfig |grep enx0c5b8f279a64  >/dev/null ;then
+			ifconfig enx0c5b8f279a64 down
+		fi
 		ifconfig wlan0 up
 		service wicd restart
+		open_wicd_gtk
 	else
 		echo "none support network type"
 		exit 1
 	fi
+	exit 0
 }
+case $OPTION in
+	wifi)
+		network_change
+		;;
+	4g)
+		network_change
+		;;
+	*)
+		echo "`basename $0`: usage: [--option] "
+		echo -e "option:\n [wifi]  change network to wifi\n [4g]   change network to wifi\n"
+		exit 1
+		;;
+esac
 
-network_change
 sleep 10
 netstat_check
 
