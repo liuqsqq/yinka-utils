@@ -26,7 +26,7 @@ function open_wicd_gtk () {
 }
 function network_change () {
 	if [ $OPTION == "4g" ]; then
-		if ifconfig |grep enx0c5b8f279a64  >/dev/null ;then
+		if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
 			service wicd stop
 			ifconfig wlan0 down
 
@@ -36,7 +36,7 @@ function network_change () {
 			exit 1
 		fi
 	elif [ $OPTION == "wifi" ]; then
-		if ifconfig |grep enx0c5b8f279a64  >/dev/null ;then
+		if ifconfig -a |grep enx0c5b8f279a64  >/dev/null ;then
 			ifconfig enx0c5b8f279a64 down
 		fi
 		ifconfig wlan0 up
