@@ -448,11 +448,13 @@ static int process_data_receive(char *ptr)
                                 }
                                 else if (control_cmd->data[0] == DAEMON_FORCE_RESTART) {
                                         fprintf(log_stream, "INFO: start to restart %s forced\n", g_daemon_config->prog_list[type-1].program_name);
+                                        g_daemon_config->prog_list[type-1].dameon_switch = true;
                                         process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
                             			g_prog_state_list[type-1].reboot_times++;
                                         g_prog_state_list[type-1].uptime = time(NULL); 
                                 }
                                 else if(control_cmd->data[0] == DAEMON_CLOSE) {
+                                        g_daemon_config->prog_list[type-1].dameon_switch = false;
                                         fprintf(log_stream, "INFO: start to close %s forced\n", g_daemon_config->prog_list[type-1].program_name);
                                         process_kill(g_daemon_config->prog_list[type-1].program_name); 
                                 }
