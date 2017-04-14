@@ -454,7 +454,7 @@ static int process_data_receive(char *ptr)
                                 }
                                 else if(control_cmd->data[0] == DAEMON_CLOSE) {
                                         fprintf(log_stream, "INFO: start to close %s forced\n", g_daemon_config->prog_list[type-1].program_name);
-                                        process_kill(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline); 
+                                        process_kill(g_daemon_config->prog_list[type-1].program_name); 
                                 }
                                 if ((control_cmd->data[0] == DAEMON_OFF) || (control_cmd->data[0] == DAEMON_ON))
                                     fprintf(log_stream, "INFO: Control cmd:%s program %s's dameon\n",
