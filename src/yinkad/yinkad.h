@@ -92,6 +92,7 @@ typedef enum {
     DAEMON_GETINFO,
     DAEMON_SAFE_RESTART,
     DAEMON_FORCE_RESTART,
+    DAEMON_CLOSE,
     DAEMON_MAX
 }daemon_type;
 

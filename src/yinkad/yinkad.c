@@ -192,9 +192,9 @@ static int getFatherPid(int pid)
     return rpid;
 }
 
-static void process_restart(char *program_name, char *cmdline)
+static void process_kill(char *program_name)
 {
-	pid_t kill_status, restart_status;
+	pid_t kill_status;
 	char cmd_str[256];
     pid_t pid = -1;
     pid_t ppid = -1;
@@ -202,13 +202,30 @@ static void process_restart(char *program_name, char *cmdline)
     ppid = getFatherPid(pid);     
     sprintf(cmd_str, "kill %d", ppid);
     kill_status = system(cmd_str);
+    
+	if (kill_status == -1){
+		fprintf(log_stream, "ERROR: execute %s failed\n", cmd_str);
+	}
+	else{
+		if(WEXITSTATUS(kill_status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(kill_status));
+		}
+	}
+}
+
+
+static void process_restart(char *program_name, char *cmdline)
+{
+	pid_t restart_status;
+    
+    process_kill(program_name);
     restart_status = system(cmdline);
     
-	if (kill_status == -1 && restart_status == -1){
+	if (restart_status == -1){
 		fprintf(log_stream, "ERROR: execute %s failed\n", cmdline);
 	}
 	else{
-		if(WEXITSTATUS(kill_status) != 0 && WEXITSTATUS(restart_status) != 0){
+		if(WEXITSTATUS(restart_status) != 0){
 			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(restart_status));
 		}
 	}
@@ -434,6 +451,10 @@ static int process_data_receive(char *ptr)
                                         process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
                             			g_prog_state_list[type-1].reboot_times++;
                                         g_prog_state_list[type-1].uptime = time(NULL); 
+                                }
+                                else if(control_cmd->data[0] == DAEMON_CLOSE) {
+                                        fprintf(log_stream, "INFO: start to close %s forced\n", g_daemon_config->prog_list[type-1].program_name);
+                                        process_kill(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline); 
                                 }
                                 if ((control_cmd->data[0] == DAEMON_OFF) || (control_cmd->data[0] == DAEMON_ON))
                                     fprintf(log_stream, "INFO: Control cmd:%s program %s's dameon\n",
