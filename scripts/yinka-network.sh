@@ -2,6 +2,13 @@
 
 OPTION=$1
 
+function open_wicd_gtk () {
+	wicd-gtk&
+	sleep 1
+	killall -9 devilspie
+	devilspie&	
+}
+
 function netstat_check () {
 	cnt=0
 	while [ $cnt -le 10 ]
@@ -17,13 +24,9 @@ function netstat_check () {
 	echo "try aggin"
     	network_change
 	fi
+	open_wicd_gtk
 }
-function open_wicd_gtk () {
-	wicd-gtk&
-	sleep 1
-	killall -9 devilspie
-	devilspie&	
-}
+
 function network_change () {
 	if [ $OPTION == "4g" ]; then
 		if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
@@ -41,7 +44,6 @@ function network_change () {
 		fi
 		ifconfig wlan0 up
 		service wicd restart
-		open_wicd_gtk
 	else
 		echo "none support network type"
 		exit 1
@@ -50,7 +52,7 @@ function network_change () {
 }
 case $OPTION in
 	wifi)
-		network_change
+		netstat_check
 		;;
 	4g)
 		network_change
@@ -61,8 +63,5 @@ case $OPTION in
 		exit 1
 		;;
 esac
-
-sleep 10
-netstat_check
 
 exit 0
