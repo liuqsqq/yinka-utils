@@ -549,7 +549,7 @@ static int process_data_receive(char *ptr)
                                  fprintf(log_stream, "INFO: XINPUT devices are pluged out, do nothing\n");
                             }
                             else if (control_cmd->data[0] == XINPUT_ADD){
-                                if ((g_xinput_state.is_enable) && (g_xinput_state.enable_remain_time > 0){
+                                if ((g_xinput_state.is_enable) && (g_xinput_state.enable_remain_time > 0)){
                                     //allow xinput devices,do nothing
                                 }
                                 else{
@@ -623,7 +623,7 @@ static int yinka_dameon_init()
 	
     memset(g_daemon_config, 0, sizeof(daemon_config_t));
 	memset(g_prog_state_list, 0, sizeof(program_state_t)); 
-    memset(g_xinput_state, 0, sizeof(xinput_state_t));
+    memset(&g_xinput_state, 0, sizeof(xinput_state_t));
     log_stream = stderr;
     running = 0;
 	
