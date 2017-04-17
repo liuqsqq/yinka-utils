@@ -50,8 +50,8 @@ char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 						"player"
 };
 
-#define XINPUT_ALLOW_CMDLINE ("manage_usb_keyboard_devices.sh on")
-#define XINPUT_DENY_CMDLINE ("manage_usb_keyboard_devices.sh off")
+#define XINPUT_ALLOW_CMDLINE ("/usr/local/bin/scripts/manage_usb_keyboard_devices.sh on")
+#define XINPUT_DENY_CMDLINE ("usr/local/bin/scripts/manage_usb_keyboard_devices.sh off")
 
 typedef struct {
     unsigned short type;
