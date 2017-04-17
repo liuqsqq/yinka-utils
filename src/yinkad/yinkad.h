@@ -101,15 +101,6 @@ typedef enum {
     YINKA_ALL=0xffff
 }yinka_type;
 
-typedef enum {
-    DAEMON_OFF=0,
-    DAEMON_ON,
-    DAEMON_GETINFO,
-    DAEMON_SAFE_RESTART,
-    DAEMON_FORCE_RESTART,
-    DAEMON_CLOSE,
-    DAEMON_MAX
-}daemon_type;
 
 typedef enum {
     DAEMON_OFF=0,
