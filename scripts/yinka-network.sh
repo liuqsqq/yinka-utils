@@ -5,31 +5,37 @@ OPTION=$1
 function open_wicd_gtk () {
 	wicd-gtk&
 	sleep 1
-	killall -9 devilspie
+	pkill -f devilspie
 	devilspie&	
 }
 
 function netstat_check () {
-	cnt=0
-	while [ $cnt -le 10 ]
-	do
-   		ping -c2 www.yinka.co  > /dev/null 2>&1
-   		if [ $? -eq  0 ]; then
-       	break
-    	else
-       	cnt=$(($cnt+1))
-    	fi
-	done
-	if [ $cnt -gt 10 ]; then
-	echo "try aggin"
-    	network_change
+	if ifconfig |grep wlan0 >/dev/null;then
+		cnt=0
+		while [ $cnt -le 10 ]
+		do
+			ping -c2 www.yinka.co  > /dev/null 2>&1
+			if [ $? -eq  0 ]; then
+			break
+			else
+			cnt=$(($cnt+1))
+			fi
+		done
+		if [ $cnt -gt 10 ]; then
+		echo "try aggin"
+			network_change
+		fi
+	else
+		network_change
 	fi
+	pkill -f wicd-client.py
 	open_wicd_gtk
 }
 
 function network_change () {
 	if [ $OPTION == "4g" ]; then
 		if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
+			pkill -f wicd-client.py
 			service wicd stop
 			ifconfig wlan0 down
 
