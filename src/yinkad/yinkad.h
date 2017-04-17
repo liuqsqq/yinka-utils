@@ -30,9 +30,16 @@
 #define TYPE_CONTROL_CMD       (0)
 #define TYPE_KEEPALIVE         (1)
 #define TYPE_RES_STATISTIC     (2)
+#define TYPE_XINPUT      (3)
+
 
 #define IS_IDLE         (0)
 #define IS_BUSY         (1)
+
+#define XINPUT_ADD      (1)
+#define XINPUT_REMOVE   (0)
+
+#define XINPUT_DEFAULT_ENABLE_TIME (10 * 1000)
 
 
 
@@ -42,6 +49,9 @@ char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 						"autoprint", 
 						"player"
 };
+
+#define XINPUT_ALLOW_CMDLINE ("manage_usb_keyboard_devices.sh on")
+#define XINPUT_DENY_CMDLINE ("manage_usb_keyboard_devices.sh off")
 
 typedef struct {
     unsigned short type;
@@ -79,6 +89,11 @@ typedef struct{
     unsigned short program_state;
 }keep_alive_t;
 
+typedef struct{
+    unsigned short is_enable ;
+    unsigned short enable_remain_time;
+}xinput_state_t;
+
 typedef enum {
     YINKA_PRINT=1,
     YINKA_PLAYER,
@@ -95,5 +110,18 @@ typedef enum {
     DAEMON_CLOSE,
     DAEMON_MAX
 }daemon_type;
+
+typedef enum {
+    DAEMON_OFF=0,
+    DAEMON_ON,
+    DAEMON_GETINFO,
+    DAEMON_SAFE_RESTART,
+    DAEMON_FORCE_RESTART,
+    DAEMON_CLOSE,
+    DAEMON_XINPUT_REPORT,
+    DAEMON_XINPUT_CONTROL,   
+    DAEMON_MAX
+}daemon_type;
+
 
 #endif

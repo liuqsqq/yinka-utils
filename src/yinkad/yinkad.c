@@ -46,6 +46,8 @@ static int running = 0;
 daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
 
+static xinput_state_t  g_xinput_state;
+
 /*
  *  Read configuration from config file
  */
@@ -371,6 +373,7 @@ static int process_data_receive(char *ptr)
     unsigned short state;
 
     int k = 0;
+	pid_t deny_xinput_status;
 
     while (1) {
         data_len = 0;
@@ -389,7 +392,7 @@ static int process_data_receive(char *ptr)
             recv_bytes = recvfrom(g_yinka_daemon_sock, buff, MAX_BUFFER_LEN, 0, (struct sockaddr*)&client_addr, &client_addr_len);
             if (recv_bytes > 0) {
                 buff[recv_bytes] = 0;
-                #if 0
+                #if 1
                 fprintf(log_stream,"INFO: Receive %d bytes\n", recv_bytes); 
                 for (int j = 0; j < recv_bytes; j++)
                 {
@@ -536,6 +539,35 @@ static int process_data_receive(char *ptr)
                         }
                         fprintf(log_stream, "INFO: [%s]keepalive received\n", prog_names[program_id-1]);                              
 					}
+                    else if (type == TYPE_XINPUT) {
+                        
+                        control_cmd = (yinka_daemon_tlv_t *)(yinka_daemon_tmp + data_len);
+                        type = ntohs(control_cmd->type);
+                        if (DAEMON_XINPUT_REPORT == type){
+                            if (control_cmd.data[0] == XINPUT_REMOVE){
+                                //remove xinput device,do nothing
+                                 fprintf(log_stream, "INFO: XINPUT devices are pluged out, do nothing\n");
+                            }
+                            else if (control_cmd.data[0] == XINPUT_ADD){
+                                if ((g_xinput_state.is_enable) && (g_xinput_state.enable_remain_time > 0){
+                                    //allow xinput devices,do nothing
+                                }
+                                else{
+                                    deny_xinput_status = system(XINPUT_DENY_CMDLINE);                                     
+                                	if (deny_xinput_status == -1){
+                                		fprintf(log_stream, "ERROR: execute %s failed\n", XINPUT_DENY_CMDLINE);
+                                	}
+                                	else{
+                                		if(WEXITSTATUS(deny_xinput_status) != 0){
+                                			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(deny_xinput_status));
+                                		}
+                                	}
+                                    fprintf(log_stream, "INFO: XINPUT devices are pluged in, Deny them\n");
+                                }
+                            }
+                        }
+                        
+                    }
                     else{
                         break;
                     }
@@ -591,6 +623,7 @@ static int yinka_dameon_init()
 	
     memset(g_daemon_config, 0, sizeof(daemon_config_t));
 	memset(g_prog_state_list, 0, sizeof(program_state_t)); 
+    memset(g_xinput_state, 0, sizeof(g_xinput_state));
     log_stream = stderr;
     running = 0;
 	
