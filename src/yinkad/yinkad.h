@@ -39,7 +39,11 @@
 #define XINPUT_ADD      (1)
 #define XINPUT_REMOVE   (0)
 
-#define XINPUT_DEFAULT_ENABLE_TIME (10 * 1000)
+#define XINPUT_DENY     (0)
+#define XINPUT_ALLOW    (1)
+
+
+#define XINPUT_DEFAULT_ENABLE_TIME (10)
 
 
 

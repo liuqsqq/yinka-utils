@@ -233,6 +233,25 @@ static void process_restart(char *program_name, char *cmdline)
 	}
 }
 
+static void process_xinput_devices(int is_enable)
+{
+	pid_t ctl_xinput_status;
+    
+    if (XINPUT_ALLOW == is_enable)
+        ctl_xinput_status = system(XINPUT_ALLOW_CMDLINE);
+    else if (XINPUT_DENY == is_enable)
+        ctl_xinput_status = system(XINPUT_DENY_CMDLINE);
+    
+	if (ctl_xinput_status == -1){
+		fprintf(log_stream, "ERROR: execute %s failed\n", is_enable?XINPUT_ALLOW_CMDLINE:XINPUT_DENY_CMDLINE);
+	}
+	else{
+		if(WEXITSTATUS(ctl_xinput_status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(ctl_xinput_status));
+		}
+	}
+}
+
 
 static void process_keepalive()
 {
@@ -252,6 +271,17 @@ static void process_keepalive()
         }
     }
 }
+static void check_xinput_remaintimes()
+{
+   if (XINPUT_ALLOW == g_xinput_state.is_enable){
+        g_xinput_state.enable_remain_time--;
+        if (g_xinput_state.enable_remain_time <= 0){
+            process_xinput_devices(XINPUT_DENY);  
+            g_xinput_state.is_enable = XINPUT_DENY;
+            g_xinput_state.enable_remain_time = 0;
+        } 
+   }
+}
 
 static void process_monitor()
 {
@@ -261,7 +291,8 @@ static void process_monitor()
     float memrate = 0.0;
     float cpurate = 0.0;
     long  memvalue = 0;
-
+    
+    
     for (i = 0; i < MAX_DAMEON_PROGRAMS_NUMS; i++) {
         /* check whether dameon switch is on or off*/
         if (!g_daemon_config->prog_list[i].dameon_switch) {
@@ -276,6 +307,7 @@ static void process_monitor()
             g_daemon_config->prog_list[i].safe_restart = false;
             continue;
         }
+        
         /* try to check program is alive, if not ,try to reboot it */
         //fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
@@ -302,6 +334,7 @@ static void process_monitor()
             g_prog_state_list[i].uptime = time(NULL);
 		}
     }
+    if ()
 }
 int daemon_data_send(struct sockaddr_in *client_addr, program_state_t* proram_statistic, int prog_nums)
 {
@@ -566,7 +599,20 @@ static int process_data_receive(char *ptr)
                                 }
                             }
                         }
-                        
+                        if (DAEMON_XINPUT_CONTROL == type){
+                            xinput_state_t *pInputState = (xinput_state_t* )(control_cmd.data)
+                            g_xinput_state.is_enable = ntohs(pInputState->is_enable);
+                            g_xinput_state.enable_remain_time = ntohs(pInputState->enable_remain_time);
+                            fprintf(log_stream, "INFO: Xinput Control:%s keyboard and mouse in %d minutes\n",  \
+                                g_xinput_state.is_enable?"enable":"disable", g_xinput_state.enable_remain_time);
+                            if ((g_xinput_state.is_enable == XINPUT_ALLOW) && (g_xinput_state.enable_remain_time <= 0)){
+                                g_xinput_state.enable_remain_time = XINPUT_DEFAULT_ENABLE_TIME;
+                                process_xinput_devices(XINPUT_ALLOW);
+                            }
+                            else{
+                                process_xinput_devices(XINPUT_DENY);
+                            }                               
+                       }
                     }
                     else{
                         break;
@@ -646,7 +692,7 @@ int main()
     int delay = 0;
 	int ret = 0;
     int i = 0;
-    
+    int per_minute_cnt = 0;
     ret = yinka_dameon_init();
     if (0 != ret) {
         exit(EXIT_FAILURE);
@@ -673,7 +719,13 @@ int main()
 		process_monitor();
 		process_keepalive();
 		sleep(g_daemon_config->delay);
-	}
+        per_minute_cnt++;
+        if (per_minute_cnt >= (60/g_daemon_config->delay)){
+            per_minute_cnt = 0;
+            check_xinput_remaintimes();
+        }
+    }   
+
 
     /* Free allocated memory */
 	if (conf_file_name != NULL) {
