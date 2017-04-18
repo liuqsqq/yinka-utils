@@ -279,6 +279,7 @@ static void check_xinput_remaintimes()
             process_xinput_devices(XINPUT_DENY);  
             g_xinput_state.is_enable = XINPUT_DENY;
             g_xinput_state.enable_remain_time = 0;
+            fprintf(log_stream, "INFO: timeout,start to deny input devices\n"));
         } 
    }
 }
@@ -424,7 +425,7 @@ static int process_data_receive(char *ptr)
             recv_bytes = recvfrom(g_yinka_daemon_sock, buff, MAX_BUFFER_LEN, 0, (struct sockaddr*)&client_addr, &client_addr_len);
             if (recv_bytes > 0) {
                 buff[recv_bytes] = 0;
-                #if 1
+                #if 0
                 fprintf(log_stream,"INFO: Receive %d bytes\n", recv_bytes); 
                 for (int j = 0; j < recv_bytes; j++)
                 {
@@ -578,7 +579,9 @@ static int process_data_receive(char *ptr)
                         if (DAEMON_XINPUT_REPORT == type){
                             if (control_cmd->data[0] == XINPUT_REMOVE){
                                 //remove xinput device,do nothing
-                                 fprintf(log_stream, "INFO: XINPUT devices are pluged out, do nothing\n");
+                                 fprintf(log_stream, "INFO: XINPUT devices are pluged out, reset g_xinput_state\n");
+                                 g_xinput_state.is_enable = XINPUT_DENY;
+                                 g_xinput_state.enable_remain_time = 0;
                             }
                             else if (control_cmd->data[0] == XINPUT_ADD){
                                 if ((g_xinput_state.is_enable) && (g_xinput_state.enable_remain_time > 0)){
