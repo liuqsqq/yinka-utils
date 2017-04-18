@@ -602,15 +602,16 @@ static int process_data_receive(char *ptr)
                             xinput_state_t *pInputState = (xinput_state_t* )(control_cmd->data);
                             g_xinput_state.is_enable = ntohs(pInputState->is_enable);
                             g_xinput_state.enable_remain_time = ntohs(pInputState->enable_remain_time);
-                            fprintf(log_stream, "INFO: Xinput Control:%s keyboard and mouse in %d minutes\n",  \
-                                g_xinput_state.is_enable?"enable":"disable", g_xinput_state.enable_remain_time);
+
                             if ((g_xinput_state.is_enable == XINPUT_ALLOW) && (g_xinput_state.enable_remain_time <= 0)){
                                 g_xinput_state.enable_remain_time = XINPUT_DEFAULT_ENABLE_TIME;
                                 process_xinput_devices(XINPUT_ALLOW);
                             }
                             else{
                                 process_xinput_devices(XINPUT_DENY);
-                            }                               
+                            }  
+                            fprintf(log_stream, "INFO: Xinput Control:%s keyboard and mouse in %d minutes\n",  \
+                                g_xinput_state.is_enable?"enable":"disable", g_xinput_state.enable_remain_time);
                        }
                     }
                     else{
