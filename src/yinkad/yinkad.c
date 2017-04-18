@@ -334,7 +334,6 @@ static void process_monitor()
             g_prog_state_list[i].uptime = time(NULL);
 		}
     }
-    if ()
 }
 int daemon_data_send(struct sockaddr_in *client_addr, program_state_t* proram_statistic, int prog_nums)
 {
@@ -600,7 +599,7 @@ static int process_data_receive(char *ptr)
                             }
                         }
                         if (DAEMON_XINPUT_CONTROL == type){
-                            xinput_state_t *pInputState = (xinput_state_t* )(control_cmd.data)
+                            xinput_state_t *pInputState = (xinput_state_t* )(control_cmd->data);
                             g_xinput_state.is_enable = ntohs(pInputState->is_enable);
                             g_xinput_state.enable_remain_time = ntohs(pInputState->enable_remain_time);
                             fprintf(log_stream, "INFO: Xinput Control:%s keyboard and mouse in %d minutes\n",  \
