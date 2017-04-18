@@ -279,7 +279,7 @@ static void check_xinput_remaintimes()
             process_xinput_devices(XINPUT_DENY);  
             g_xinput_state.is_enable = XINPUT_DENY;
             g_xinput_state.enable_remain_time = 0;
-            fprintf(log_stream, "INFO: timeout,start to deny input devices\n"));
+            fprintf(log_stream, "INFO: timeout,start to deny input devices\n");
         } 
    }
 }
