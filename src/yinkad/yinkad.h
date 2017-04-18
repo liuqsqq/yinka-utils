@@ -43,7 +43,7 @@
 #define XINPUT_ALLOW    (1)
 
 
-#define XINPUT_DEFAULT_ENABLE_TIME (10)
+#define XINPUT_DEFAULT_ENABLE_TIME (1)
 
 
 
