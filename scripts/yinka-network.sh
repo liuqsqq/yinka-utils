@@ -6,7 +6,7 @@ function open_wicd_gtk () {
 	wicd-gtk&
 	sleep 1
 	pkill -f devilspie
-	devilspie&	
+	/usr/local/bin/scripts/restart_devilspie.sh
 }
 
 function netstat_check () {
