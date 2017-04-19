@@ -28,14 +28,20 @@ function netstat_check () {
 	else
 		network_change
 	fi
-	pkill -f wicd-client.py
-	open_wicd_gtk
+        id=$(ps -ef | grep 'wicd-client'  | grep -v grep |  awk '{print $2}')
+        if [ "$id" != "" ];then
+	    pkill -f wicd-client.py
+	fi
+        open_wicd_gtk
 }
 
 function network_change () {
 	if [ $OPTION == "4g" ]; then
 		if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
-			pkill -f wicd-client.py
+                        id=$(ps -ef | grep 'wicd-client'  | grep -v grep |  awk '{print $2}')
+                        if [ "$id" != "" ];then
+	                    pkill -f wicd-client.py
+	                fi
 			service wicd stop
 			ifconfig wlan0 down
 
