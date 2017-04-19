@@ -28,6 +28,7 @@ function netstat_check () {
 	else
 		network_change
 	fi
+        echo "start to kill wicd"
         id=$(ps -ef | grep 'wicd-client'  | grep -v grep |  awk '{print $2}')
         if [ "$id" != "" ];then
 	    pkill -f wicd-client.py
@@ -60,7 +61,6 @@ function network_change () {
 		echo "none support network type"
 		exit 1
 	fi
-	exit 0
 }
 case $OPTION in
 	wifi)
