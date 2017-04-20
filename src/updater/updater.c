@@ -86,13 +86,25 @@ void parse_update_info(char* str_info)
     json_bool ret;
     const char* pstr = NULL;
     json_update_info = json_tokener_parse(str_info);
+    int result_code = 0;
+    ret = json_object_object_get_ex(json_update_info, "resultCode", &temp);
+    if (ret == TRUE) {    
+        result_code = json_object_get_int(temp);
+        if (result_code == 401){
+            fprintf(log_stream, "INFO: can't find version info\n",
+            json_object_put(json_update_info);
+            return -1;
+        }
+    }
     
+
     ret = json_object_object_get_ex(json_update_info, "updatestate", &temp);
     if (ret == TRUE) {    
         update_str_info.update_state = json_object_get_int(temp);
     }
     else {
-        goto final;
+        json_object_put(json_update_info);
+        return -1;
     }
     
     ret = json_object_object_get_ex(json_update_info, "type", &temp);
@@ -125,6 +137,7 @@ void parse_update_info(char* str_info)
  
 final:
     json_object_put(json_update_info);
+    return 0;
 }
 
 void make_json_paras(struct _update_result_t result, char* result_json)
