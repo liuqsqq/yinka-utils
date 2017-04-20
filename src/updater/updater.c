@@ -79,7 +79,7 @@ size_t write_report_data(void * ptr, size_t size, size_t nmemb, void* stream)
     return (size * nmemb); 
 }
 
-void parse_update_info(char* str_info)
+int  parse_update_info(char* str_info)
 {
     json_object *json_update_info = NULL;
     json_object * temp = NULL;
@@ -91,7 +91,7 @@ void parse_update_info(char* str_info)
     if (ret == TRUE) {    
         result_code = json_object_get_int(temp);
         if (result_code == 401){
-            fprintf(log_stream, "INFO: can't find version info\n",
+            fprintf(log_stream, "INFO: can't find version info\n");
             json_object_put(json_update_info);
             return -1;
         }
@@ -197,7 +197,7 @@ int query_update_info(const char* machine_id)
 
         if ( (res == CURLE_OK) && retcode == 200 ){
             //printf("update_info : %s", update_info);
-            parse_update_info(update_info);       
+            retcode = parse_update_info(update_info);       
         }
         else {
             fprintf(log_stream, "ERROR:retcode is %ld \n",retcode); 
