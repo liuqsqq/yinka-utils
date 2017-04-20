@@ -750,7 +750,8 @@ int process_linux_update_cmd_data(char *ptr)
     int force_update = 0;
     int ret = 0;
     char machine_id[COMMON_STR_LEN] = {0};
- 
+    char hostname[COMMON_STR_LEN] = {0};
+    
     while (1) {
         FD_ZERO(&set);
         FD_SET(g_yinka_linux_update_sock, &set);
@@ -791,7 +792,8 @@ int process_linux_update_cmd_data(char *ptr)
                 if (type == TYPE_UPDATE_CONTROL_CMD) {
                     fprintf(log_stream, "INFO:force to update reset now\n");
                     force_update = p_yinka_update->data[0];   
-                    ret = machine_id_get("FABU2", machine_id);
+                    (void)gethostname(hostname, sizeof(hostname));
+                    ret = machine_id_get(hostname, machine_id);
                     ret = process_update(machine_id, force_update);
                     memset(machine_id, 0, sizeof(machine_id));
                 }
@@ -846,13 +848,14 @@ int main(void)
 {
     int ret = 0;
     int rand_sec = 0;
+    char hostname[COMMON_STR_LEN] = {0};
     char machine_id[COMMON_STR_LEN] = {0};
  
     curl_global_init(CURL_GLOBAL_ALL);
 
     ret = yinka_linux_update_init();
- 
-    ret = machine_id_get("FABU2", machine_id);
+    (void)gethostname(hostname, sizeof(hostname));
+    ret = machine_id_get(hostname, machine_id);
  
     for(;;){
         rand_sec = rand_time_get(MAX_RAND_SECOND);

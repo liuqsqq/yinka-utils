@@ -406,7 +406,6 @@ static int process_data_receive(char *ptr)
     unsigned short state;
 
     int k = 0;
-	pid_t deny_xinput_status;
 
     while (1) {
         data_len = 0;
@@ -588,15 +587,7 @@ static int process_data_receive(char *ptr)
                                     //allow xinput devices,do nothing
                                 }
                                 else{
-                                    deny_xinput_status = system(XINPUT_DENY_CMDLINE);                                     
-                                	if (deny_xinput_status == -1){
-                                		fprintf(log_stream, "ERROR: execute %s failed\n", XINPUT_DENY_CMDLINE);
-                                	}
-                                	else{
-                                		if(WEXITSTATUS(deny_xinput_status) != 0){
-                                			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(deny_xinput_status));
-                                		}
-                                	}
+                                    process_xinput_devices(XINPUT_DENY);
                                     fprintf(log_stream, "INFO: XINPUT devices are pluged in, Deny them\n");
                                 }
                             }
@@ -687,6 +678,8 @@ static int yinka_dameon_init()
     /* Daemon will handle three signals */
 	signal(SIGINT, handle_signal);
 	signal(SIGHUP, handle_signal);
+
+    process_xinput_devices(XINPUT_DENY);
 
     return 0;
 }
