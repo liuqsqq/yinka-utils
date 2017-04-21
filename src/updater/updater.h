@@ -26,7 +26,11 @@
 #define MD5_STR_LEN     (MD5_SIZE * 2)  
  
 #define DOWNLOAD_ROOT_PATH ("/tmp/updatefiles/")
+#if 0
 #define UPDATE_FILE_NAME  ("update.tar.gz")
+#endif
+#define UPDATE_FILE_NAME  ("update.zip")
+
 #define UPDATE_CONFIG_XML  ("update.xml")
 #define SOFT_ROOT_PATH  ("/usr/local/soft/")
  
