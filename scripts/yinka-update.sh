@@ -64,16 +64,16 @@ function kernel_update () {
 }
 
 function autoprint_update () {
-	if [ -d "$backup_dir/autoprint" ]; then
-		rm -rf $backup_dir/autoprint
+	if [ -d "$backup_dir/autoprint/resources" ]; then
+		rm -rf $backup_dir/autoprint/resources
 	fi
-	cp -a $soft_dir/autoprint $backup_dir/
-	rm -rf $soft_dir/autoprint
-	cp -a $temp_dir/autoprint $soft_dir/
+	cp -a $soft_dir/autoprint/resources $backup_dir/
+	rm -rf $soft_dir/autoprint/resources
+	cp -a $temp_dir/autoprint/resources $soft_dir/autoprint
 	echo $VERSION > $soft_dir/autoprint_version.ver
-	ln -sf $soft_dir/autoprint/autoprint /usr/bin/autoprint
+	ln -sf $soft_dir/autoprint/yinka-autoprint /usr/bin/yinka-autoprint
 }
-
+# Now player is packaged as deb,so this function is ignored
 function player_update () {
     if [ -d "$backup_dir/player" ]; then
         rm -rf $backup_dir/player
