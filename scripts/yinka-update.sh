@@ -87,7 +87,7 @@ function player_update () {
 
 function debian_update () {
 	sh $temp_dir/debian/$FILENAME
-	echo $VERSION > $soft_dir/"$FILENAME"_version.ver
+	echo $VERSION > $soft_dir/debian_version.ver
 }
 
 case $OPTION in
