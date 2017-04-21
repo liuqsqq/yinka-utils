@@ -583,11 +583,17 @@ int process_update(char* machine_id,  int force_update_flag)
     strcat(update_file_path, DOWNLOAD_ROOT_PATH);
     strcat(update_file_path, UPDATE_FILE_NAME);
 
+#if 0
     strcat(str_tarcmd, "tar xzf ");
     strcat(str_tarcmd, update_file_path);
     strcat(str_tarcmd, " -C ");
     strcat(str_tarcmd, DOWNLOAD_ROOT_PATH);
+#endif
 
+    strcat(str_tarcmd, "unzip  ");
+    strcat(str_tarcmd, update_file_path);
+    strcat(str_tarcmd, " -d ");
+    strcat(str_tarcmd, DOWNLOAD_ROOT_PATH);
 
     memset(tmp_file_path, 0 ,sizeof(tmp_file_path));
     memset(&update_result, 0, sizeof(update_result));
