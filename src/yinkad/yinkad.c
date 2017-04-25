@@ -40,6 +40,8 @@
 static char *conf_file_name;
 static FILE *log_stream;
 static int g_yinka_daemon_sock;
+static int g_yinka_daemon_tcp_client_sock;
+
 static int running = 0;
 
 /* typedef global config struct */
@@ -475,9 +477,14 @@ static int process_data_receive(char *ptr)
                                    if (g_prog_state_list[type-1].state == IS_BUSY)
                                        g_daemon_config->prog_list[type-1].safe_restart = true;
                                    else{
-                                        process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
-                            			g_prog_state_list[type-1].reboot_times++;
-                                        g_prog_state_list[type-1].uptime = time(NULL); 
+                                        if (YINKA_PRINT == type){
+                                            sendto_yinka_autoprint_cmd("needUpdate");
+                                        }
+                                        else{
+                                            process_restart(g_daemon_config->prog_list[type-1].program_name, g_daemon_config->prog_list[type-1].cmdline);
+                                			g_prog_state_list[type-1].reboot_times++;
+                                            g_prog_state_list[type-1].uptime = time(NULL); 
+                                        }
                                    }
 
                                 }
@@ -525,6 +532,7 @@ static int process_data_receive(char *ptr)
                                        if (g_prog_state_list[k].state == IS_BUSY)
                                            g_daemon_config->prog_list[k].safe_restart = true;
                                        else{
+                                            if ()
                                             process_restart(g_daemon_config->prog_list[k].program_name, g_daemon_config->prog_list[k].cmdline);
                                 			g_prog_state_list[k].reboot_times++;
                                             g_prog_state_list[k].uptime = time(NULL); 
@@ -654,6 +662,42 @@ static int yinka_daemon_server_init()
     return 0;
 }
 
+static int yinka_daemon_tcp_client_init()
+{    
+	int on = 1;
+    if ( (g_yinka_daemon_tcp_client_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket");
+        exit(1);
+    }
+  
+    if((setsockopt(g_yinka_daemon_tcp_client_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))<0) {  
+        perror("setsockopt failed");  
+        exit(EXIT_FAILURE);  
+    }
+    return 0;
+}
+
+static void sendto_yinka_autoprint_cmd(char* cmd)
+{
+    char recvbuf[MAX_BUFFER_LEN]; 
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_port = htons(8088);
+    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
+        perror("connect error");  
+        exit(1);  
+    }
+    fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
+    send(g_yinka_daemon_tcp_client_sock, cmd, strlen(cmd) + 1, 0);
+    int n = readline(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
+    if (n > 0){
+       fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
+    }
+}
+
+
 static int yinka_dameon_init()
 {
     g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
@@ -674,7 +718,7 @@ static int yinka_dameon_init()
     }
 
 	yinka_daemon_server_init();
-		
+	yinka_daemon_tcp_client_init();	
     /* Daemon will handle three signals */
 	signal(SIGINT, handle_signal);
 	signal(SIGHUP, handle_signal);

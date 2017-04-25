@@ -37,23 +37,31 @@ function netstat_check () {
 }
 
 function network_change () {
-	if [ $OPTION == "4g" ]; then
-		if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
-                        id=$(ps -ef | grep 'wicd-client'  | grep -v grep |  awk '{print $2}')
-                        if [ "$id" != "" ];then
-	                    pkill -f wicd-client.py
-	                fi
-			service wicd stop
-			ifconfig wlan0 down
 
-			ifconfig enx0c5b8f279a64 up
-			dhclient enx0c5b8f279a64
-		else
+	Name=""
+	if ifconfig -a  |grep enx0c5b8f279a64  >/dev/null ;then
+		Name=enx0c5b8f279a64
+	elif ifconfig -a  |grep usb0  >/dev/null ;then
+		Name=usb0
+	fi
+	if [ $OPTION == "4g" ]; then
+
+		if [ "$Name" == "" ];then
 			exit 1
 		fi
+		id=$(ps -ef | grep 'wicd-client'  | grep -v grep |  awk '{print $2}')
+		if [ "$id" != "" ];then
+			pkill -f wicd-client.py
+		fi
+	
+		service wicd stop
+		ifconfig wlan0 down
+
+		ifconfig $Name up
+		dhclient $Name
 	elif [ $OPTION == "wifi" ]; then
-		if ifconfig -a |grep enx0c5b8f279a64  >/dev/null ;then
-			ifconfig enx0c5b8f279a64 down
+		if ifconfig -a |grep $Name  >/dev/null ;then
+			ifconfig $Name down
 		fi
 		ifconfig wlan0 up
 		service wicd restart
