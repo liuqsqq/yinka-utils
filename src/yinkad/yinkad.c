@@ -299,7 +299,7 @@ static void sendto_yinka_autoprint_cmd(char* cmd)
     }
     fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
     send(g_yinka_daemon_tcp_client_sock, cmd, strlen(cmd) + 1, 0);
-    int n = readline(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
+    int n = read(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
     if (n > 0){
        fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
     }
