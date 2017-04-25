@@ -285,6 +285,25 @@ static void check_xinput_remaintimes()
         } 
    }
 }
+static void sendto_yinka_autoprint_cmd(char* cmd)
+{
+    char recvbuf[MAX_BUFFER_LEN]; 
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_port = htons(8088);
+    if (connect(g_yinka_daemon_tcp_client_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
+        perror("connect error");  
+        exit(1);  
+    }
+    fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
+    send(g_yinka_daemon_tcp_client_sock, cmd, strlen(cmd) + 1, 0);
+    int n = readline(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
+    if (n > 0){
+       fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
+    }
+}
 
 static void process_monitor()
 {
@@ -532,7 +551,6 @@ static int process_data_receive(char *ptr)
                                        if (g_prog_state_list[k].state == IS_BUSY)
                                            g_daemon_config->prog_list[k].safe_restart = true;
                                        else{
-                                            if ()
                                             process_restart(g_daemon_config->prog_list[k].program_name, g_daemon_config->prog_list[k].cmdline);
                                 			g_prog_state_list[k].reboot_times++;
                                             g_prog_state_list[k].uptime = time(NULL); 
@@ -676,27 +694,6 @@ static int yinka_daemon_tcp_client_init()
     }
     return 0;
 }
-
-static void sendto_yinka_autoprint_cmd(char* cmd)
-{
-    char recvbuf[MAX_BUFFER_LEN]; 
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    serv_addr.sin_port = htons(8088);
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
-        perror("connect error");  
-        exit(1);  
-    }
-    fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
-    send(g_yinka_daemon_tcp_client_sock, cmd, strlen(cmd) + 1, 0);
-    int n = readline(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
-    if (n > 0){
-       fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
-    }
-}
-
 
 static int yinka_dameon_init()
 {
