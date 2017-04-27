@@ -40,7 +40,7 @@
  
 const char update_request_url[MAX_BUFFER] = {"http://admin.yinka.co/index.php?r=interface/printor/GetUpdateInfoById\&machine_id="};
 const char update_report_url[MAX_BUFFER] = {"http://admin.yinka.co/index.php?r=interface/printor/ReportUpdateResult"};
-static const char *items_version_name[] = {"autoprint_version.ver", "player_version.ver", "kernel_version.ver", "debian_verison.ver"};
+static const char *items_version_name[] = {"autoprint_version.ver", "player_version.ver", "kernel_version.ver", "debian_version.ver"};
 
 static struct _update_info_t update_str_info = {0};
 static struct _update_package_info update_packages_info[UPDATE_MAX] = {0};
@@ -650,13 +650,13 @@ int process_update(char* machine_id,  int force_update_flag)
                                  printf("dirname: %s\n", update_packages_info[i].dirname);   
                                  printf("cmdline: %s\n", update_packages_info[i].cmdline); 
                             #endif
- 
+                            memset(version, 0, sizeof(version));
                             /* if update_state is true, execute its cmdline*/
                             if (!strcmp("true", update_packages_info[i].update_state)) {
                                 (void)local_version_get(i, version);
-                                fprintf(stderr, "version %s\n", version);                                
+                                fprintf(log_stream, " %s current version %s\n", update_packages_info[i].dirname, version);                                
                                 if ((force_update != 1) && (!strcmp(version, update_packages_info[i].version))){
-                                    fprintf(log_stream, "INFO:version is same to current program,need't update\n");
+                                    fprintf(log_stream, "INFO:version is same to current program %s,need't update\n", update_packages_info[i].dirname);
                                     continue;
                                 }
                                 fprintf(log_stream, "INFO:start to execute %s\n", update_packages_info[i].cmdline);
