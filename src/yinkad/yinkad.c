@@ -40,7 +40,6 @@
 static char *conf_file_name;
 static FILE *log_stream;
 static int g_yinka_daemon_sock;
-static int g_yinka_daemon_tcp_client_sock;
 
 static int running = 0;
 
@@ -285,24 +284,34 @@ static void check_xinput_remaintimes()
         } 
    }
 }
-static void sendto_yinka_autoprint_cmd(char* cmd)
+static int  sendto_yinka_autoprint_cmd(char* cmd)
 {
-    char recvbuf[MAX_BUFFER_LEN]; 
+    char recvbuf[MAX_BUFFER_LEN] = {0}; 
     struct sockaddr_in serv_addr;
+    int sock = -1;;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     serv_addr.sin_port = htons(8088);
-    if (connect(g_yinka_daemon_tcp_client_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
-        perror("connect error");  
-        exit(1);  
+
+    if ( (sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        fprintf(log_stream, "ERROR: create  socket failed\n");     
+        return -1;
     }
-    fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
-    send(g_yinka_daemon_tcp_client_sock, cmd, strlen(cmd) + 1, 0);
-    int n = read(g_yinka_daemon_tcp_client_sock, recvbuf,sizeof(recvbuf)); 
+
+    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
+        fprintf(log_stream, "ERROR: connect yinka-autoprint port  failed\n");     
+        return -1; 
+    }
+    fprintf(sock, "INFO: connect yinka-autoprint update module success!\n");     
+    send(sock, cmd, strlen(cmd), 0);
+    fprintf(sock, "INFO: send %s success!\n", cmd);
+    int n = read(sock, recvbuf,sizeof(recvbuf)); 
     if (n > 0){
        fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
     }
+    close(sock);
+    return 0;
 }
 
 static void process_monitor()
@@ -420,7 +429,7 @@ static int process_data_receive(char *ptr)
     int control_cmd_data_len = 0;
     int client_addr_len;
     client_addr_len = sizeof(client_addr);  
-    int send_result = 0;    
+    int send_result = 0;  
 
     unsigned short program_id;
     int  time_stramp;
@@ -680,24 +689,6 @@ static int yinka_daemon_server_init()
     return 0;
 }
 
-static int yinka_daemon_tcp_client_init()
-{    
-	int on = 1;
-    if ( (g_yinka_daemon_tcp_client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket");
-        exit(1);
-    }
-    
- #if 0
-    if((setsockopt(g_yinka_daemon_tcp_client_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))<0) {  
-        perror("setsockopt failed");  
-        exit(EXIT_FAILURE);  
-    }
- #endif
- 
-    return 0;
-}
-
 static int yinka_dameon_init()
 {
     g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
@@ -718,7 +709,6 @@ static int yinka_dameon_init()
     }
 
 	yinka_daemon_server_init();
-	yinka_daemon_tcp_client_init();	
     /* Daemon will handle three signals */
 	signal(SIGINT, handle_signal);
 	signal(SIGHUP, handle_signal);
