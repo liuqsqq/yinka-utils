@@ -683,15 +683,18 @@ static int yinka_daemon_server_init()
 static int yinka_daemon_tcp_client_init()
 {    
 	int on = 1;
-    if ( (g_yinka_daemon_tcp_client_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ( (g_yinka_daemon_tcp_client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket");
         exit(1);
     }
-  
+    
+ #if 0
     if((setsockopt(g_yinka_daemon_tcp_client_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))<0) {  
         perror("setsockopt failed");  
         exit(EXIT_FAILURE);  
     }
+ #endif
+ 
     return 0;
 }
 
