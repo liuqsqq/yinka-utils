@@ -303,9 +303,9 @@ static int  sendto_yinka_autoprint_cmd(char* cmd)
         fprintf(log_stream, "ERROR: connect yinka-autoprint port  failed\n");     
         return -1; 
     }
-    fprintf(sock, "INFO: connect yinka-autoprint update module success!\n");     
+    fprintf(log_stream, "INFO: connect yinka-autoprint update module success!\n");     
     send(sock, cmd, strlen(cmd), 0);
-    fprintf(sock, "INFO: send %s success!\n", cmd);
+    fprintf(log_stream, "INFO: send %s success!\n", cmd);
     int n = read(sock, recvbuf,sizeof(recvbuf)); 
     if (n > 0){
        fprintf(log_stream, "INFO: Recv %d Bytes, message is %s!\n", n, recvbuf);      
