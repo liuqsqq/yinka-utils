@@ -48,6 +48,7 @@ daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
 
 static xinput_state_t  g_xinput_state;
+static remote_control_t  g_remote_control_state;
 
 /*
  *  Read configuration from config file
@@ -234,6 +235,29 @@ static void process_restart(char *program_name, char *cmdline)
 	}
 }
 
+
+static void process_remote_control(int is_enable)
+{
+	pid_t ctl_remote_status;
+    
+    if (REMOTE_CONTROL_ENABLE == is_enable){
+        ctl_remote_status = system(REMOTE_CONTROL_CMDLINE);
+    	if (ctl_remote_status == -1){
+    		fprintf(log_stream, "ERROR: execute %s failed\n", REMOTE_CONTROL_CMDLINE);
+    	}
+    	else{
+    		if(WEXITSTATUS(ctl_remote_status) != 0){
+    			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(ctl_remote_status));
+    		}
+    	}
+    }
+    else if (REMOTE_CONTROL_DISABLE == is_enable)
+        process_kill(REMOTE_CONTROL_NAME);
+   
+}
+
+
+
 static void process_xinput_devices(int is_enable)
 {
 	pid_t ctl_xinput_status;
@@ -284,6 +308,22 @@ static void check_xinput_remaintimes()
         } 
    }
 }
+
+static void check_remote_control_remaintimes()
+{
+   if (REMOTE_CONTROL_ENABLE == g_remote_control_state.is_enable){
+        g_remote_control_state.enable_remain_time--;
+        if (g_remote_control_state.enable_remain_time <= 0){
+            process_remote_control(REMOTE_CONTROL_DISABLE);  
+            g_remote_control_state.is_enable = REMOTE_CONTROL_DISABLE;
+            g_remote_control_state.enable_remain_time = 0;
+            fprintf(log_stream, "INFO: timeout,start to disable remote control port\n");
+        } 
+   }
+}
+
+
+
 static int  sendto_yinka_autoprint_cmd(char* cmd)
 {
     char recvbuf[MAX_BUFFER_LEN] = {0}; 
@@ -643,6 +683,19 @@ static int process_data_receive(char *ptr)
                                 g_xinput_state.is_enable?"enable":"disable", g_xinput_state.enable_remain_time);
                        }
                     }
+                    else if (type == TYPE_REMOTE_CONTROL){
+                        remote_control_t *pRemoteCtlState = (remote_control_t* )(control_cmd->data);
+                        g_remote_control_state.is_enable = ntohs(pRemoteCtlState->is_enable);
+                        g_remote_control_state.enable_remain_time = ntohs(pRemoteCtlState->enable_remain_time);
+                        
+                        if ((g_remote_control_state.is_enable == REMOTE_CONTROL_ENABLE) && (g_remote_control_state.enable_remain_time <= 0)){
+                            g_remote_control_state.enable_remain_time = REMOTE_CONTROL_DEFAULT_ENABLE_TIME;
+                            process_remote_control(REMOTE_CONTROL_ENABLE);
+                        }
+                        else{
+                            process_remote_control(REMOTE_CONTROL_DISABLE);
+                        }  
+                    }
                     else{
                         break;
                     }
@@ -699,6 +752,8 @@ static int yinka_dameon_init()
     memset(g_daemon_config, 0, sizeof(daemon_config_t));
 	memset(g_prog_state_list, 0, sizeof(program_state_t)); 
     memset(&g_xinput_state, 0, sizeof(xinput_state_t));
+    memset(&g_remote_control_state, 0, sizeof(remote_control_t));
+
     log_stream = stderr;
     running = 0;
 	

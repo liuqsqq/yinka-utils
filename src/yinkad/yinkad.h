@@ -32,6 +32,8 @@
 #define TYPE_KEEPALIVE         (1)
 #define TYPE_RES_STATISTIC     (2)
 #define TYPE_XINPUT      (3)
+#define TYPE_REMOTE_CONTROL      (4)
+
 
 
 #define IS_IDLE         (0)
@@ -44,7 +46,13 @@
 #define XINPUT_ALLOW    (1)
 
 
+#define REMOTE_CONTROL_DISABLE   (0)
+#define REMOTE_CONTROL_ENABLE    (1)
+
+
+
 #define XINPUT_DEFAULT_ENABLE_TIME (10)
+#define REMOTE_CONTROL_DEFAULT_ENABLE_TIME (15)
 
 
 
@@ -57,6 +65,11 @@ char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 
 #define XINPUT_ALLOW_CMDLINE ("/usr/local/bin/scripts/manage_usb_keyboard_devices.sh on")
 #define XINPUT_DENY_CMDLINE ("usr/local/bin/scripts/manage_usb_keyboard_devices.sh off")
+
+
+#define REMOTE_CONTROL_CMDLINE ("yinka-ngrok -config=/etc/ngrok.cfg start ssh")
+#define REMOTE_CONTROL_NAME ("yinka-ngrok")
+
 
 typedef struct {
     unsigned short type;
@@ -98,6 +111,16 @@ typedef struct{
     unsigned short is_enable ;
     unsigned short enable_remain_time;
 }xinput_state_t;
+
+
+
+typedef struct{
+    unsigned short is_enable ;
+    unsigned short enable_remain_time;
+    int time_stramp;
+}remote_control_t;
+
+
 
 typedef enum {
     YINKA_PRINT=1,
