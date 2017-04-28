@@ -808,6 +808,7 @@ int main()
         if (per_minute_cnt >= (60/g_daemon_config->delay)){
             per_minute_cnt = 0;
             check_xinput_remaintimes();
+            check_remote_control_remaintimes();
         }
     }   
 
