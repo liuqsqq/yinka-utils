@@ -210,10 +210,14 @@ static void process_kill(char *program_name)
     pid_t pid = -1;
     pid_t ppid = -1;
     process_pid_get(program_name, &pid);
-    ppid = getFatherPid(pid);     
-    sprintf(cmd_str, "kill %d", ppid);
+    ppid = getFatherPid(pid);  
+    if (ppid > 1){
+        sprintf(cmd_str, "kill %d", ppid);
+    }
+    else{
+        sprintf(cmd_str, "kill %d", pid);
+    }
     kill_status = system(cmd_str);
-    
 	if (kill_status == -1){
 		fprintf(log_stream, "ERROR: execute %s failed\n", cmd_str);
 	}
