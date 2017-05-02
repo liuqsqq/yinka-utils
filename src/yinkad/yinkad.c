@@ -53,6 +53,8 @@ static int g_remote_control_flag;
 static xinput_state_t  g_xinput_state;
 static remote_control_t  g_remote_control_state;
 
+pid_t  g_yinkad_pid = -1;
+
 /*
  *  Read configuration from config file
  */
@@ -210,8 +212,9 @@ static void process_kill(char *program_name)
     pid_t pid = -1;
     pid_t ppid = -1;
     process_pid_get(program_name, &pid);
-    ppid = getFatherPid(pid);  
-    if (ppid > 1){
+    ppid = getFatherPid(pid); 
+    
+    if ((ppid > 1) && (ppid != g_yinkad_pid)){
         sprintf(cmd_str, "kill %d", ppid);
     }
     else{
@@ -776,6 +779,7 @@ static int yinka_dameon_init()
 {
     pthread_t  yinka_remote_control;
 
+
     g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
     if (!g_daemon_config) {
         return -1;
@@ -796,6 +800,8 @@ static int yinka_dameon_init()
         g_prog_state_list[i].prog_name[strlen(prog_names[i])] = '\0';
 
     }
+    g_yinkad_pid = getpid();
+    fprintf(log_stream, "INFO: yinkad pid is %d\n", g_yinkad_pid);
 
 	yinka_daemon_server_init();
     /* Daemon will handle three signals */
