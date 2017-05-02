@@ -64,7 +64,7 @@ char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 };
 
 #define XINPUT_ALLOW_CMDLINE ("/usr/local/bin/scripts/manage_usb_keyboard_devices.sh on")
-#define XINPUT_DENY_CMDLINE ("usr/local/bin/scripts/manage_usb_keyboard_devices.sh off")
+#define XINPUT_DENY_CMDLINE ("/usr/local/bin/scripts/manage_usb_keyboard_devices.sh off")
 
 
 #define REMOTE_CONTROL_CMDLINE ("setsid yinka-ngrok -config=/etc/ngrok.cfg start ssh")

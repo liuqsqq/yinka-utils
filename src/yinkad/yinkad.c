@@ -46,6 +46,9 @@ static int running = 0;
 /* typedef global config struct */
 daemon_config_t *g_daemon_config = NULL;
 program_state_t  g_prog_state_list[MAX_DAMEON_PROGRAMS_NUMS] = {0};
+static int g_remote_control_flag;
+
+
 
 static xinput_state_t  g_xinput_state;
 static remote_control_t  g_remote_control_state;
@@ -111,7 +114,11 @@ static int read_conf_file()
             if (-1 != ret) {
     	        g_daemon_config->prog_list[i].cmdline = strdup(resultstr);
             }
-        }     
+        }  
+        else{
+            fprintf(log_stream, "ERROR: Can not find %d program_name, error: %s\n",
+            i, strerror(errno));
+        }
     }
 
 	fclose(conf_file);
@@ -377,6 +384,11 @@ static void process_monitor()
             g_prog_state_list[i].uptime = time(NULL); 
             g_daemon_config->prog_list[i].safe_restart = false;
             continue;
+        }
+        if (g_remote_control_flag == REMOTE_CONTROL_ENABLE){
+            process_remote_control(REMOTE_CONTROL_ENABLE);
+            fprintf(log_stream, "INFO:enable remote control successful\n");
+            g_remote_control_flag = REMOTE_CONTROL_DISABLE;
         }
         
         /* try to check program is alive, if not ,try to reboot it */
@@ -690,7 +702,8 @@ static int process_data_receive(char *ptr)
                         
                         if ((g_remote_control_state.is_enable == REMOTE_CONTROL_ENABLE) && (g_remote_control_state.enable_remain_time <= 0)){
                             g_remote_control_state.enable_remain_time = REMOTE_CONTROL_DEFAULT_ENABLE_TIME;
-                            process_remote_control(REMOTE_CONTROL_ENABLE);
+                            //process_remote_control(REMOTE_CONTROL_ENABLE);
+                            g_remote_control_flag = REMOTE_CONTROL_ENABLE;
                         }
                         else{
                             process_remote_control(REMOTE_CONTROL_DISABLE);
@@ -754,6 +767,8 @@ static int yinka_dameon_init()
     memset(&g_xinput_state, 0, sizeof(xinput_state_t));
     memset(&g_remote_control_state, 0, sizeof(remote_control_t));
 
+    g_remote_control_flag = REMOTE_CONTROL_DISABLE;
+    
     log_stream = stderr;
     running = 0;
 	
