@@ -385,11 +385,6 @@ static void process_monitor()
             g_daemon_config->prog_list[i].safe_restart = false;
             continue;
         }
-        if (g_remote_control_flag == REMOTE_CONTROL_ENABLE){
-            process_remote_control(REMOTE_CONTROL_ENABLE);
-            fprintf(log_stream, "INFO:enable remote control successful\n");
-            g_remote_control_flag = REMOTE_CONTROL_DISABLE;
-        }
         
         /* try to check program is alive, if not ,try to reboot it */
         //fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
@@ -460,6 +455,21 @@ int daemon_data_send(struct sockaddr_in *client_addr, program_state_t* proram_st
     }
     return 0;
 }
+static int process_remote_control_thread(char *ptr)
+{
+    while (1){
+        if (g_remote_control_flag == REMOTE_CONTROL_ENABLE){
+            process_remote_control(REMOTE_CONTROL_ENABLE);
+            fprintf(log_stream, "INFO:disable remote control successful\n");
+            g_remote_control_flag = REMOTE_CONTROL_DISABLE;
+        }
+        if (running == 0){
+            break;
+        }
+        sleep(10);
+    }
+    return 0;
+}
 
 static int process_data_receive(char *ptr)
 {
@@ -497,6 +507,9 @@ static int process_data_receive(char *ptr)
         max_fd  = g_yinka_daemon_sock;
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
+        if (running == 0){
+            break;
+        }
         nfound = select(max_fd + 1, &set, (fd_set *)0, (fd_set *)0, &timeout);
         if(nfound  < 0) {
             fprintf(log_stream, "ERROR: select error!\n");
@@ -757,6 +770,8 @@ static int yinka_daemon_server_init()
 
 static int yinka_dameon_init()
 {
+    pthread_t  yinka_remote_control;
+
     g_daemon_config = (daemon_config_t *)malloc(sizeof(daemon_config_t));
     if (!g_daemon_config) {
         return -1;
@@ -784,6 +799,8 @@ static int yinka_dameon_init()
 	signal(SIGHUP, handle_signal);
 
     process_xinput_devices(XINPUT_DENY);
+    
+    pthread_create(&yinka_remote_control, NULL, (void *)(&process_remote_control_thread), NULL); 
 
     return 0;
 }
