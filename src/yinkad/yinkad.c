@@ -220,6 +220,7 @@ static void process_kill(char *program_name)
     else{
         sprintf(cmd_str, "kill %d", pid);
     }
+fprintf(log_stream, "INFO: execute %s \n", cmd_str);
     kill_status = system(cmd_str);
 	if (kill_status == -1){
 		fprintf(log_stream, "ERROR: execute %s failed\n", cmd_str);
@@ -253,7 +254,7 @@ static void process_restart(char *program_name, char *cmdline)
 static void process_remote_control(int is_enable)
 {
 	pid_t ctl_remote_status;
-    
+   fprintf(log_stream, "enter into process_remote_control\n"); 
     if (REMOTE_CONTROL_ENABLE == is_enable){
         ctl_remote_status = system(REMOTE_CONTROL_CMDLINE);
     	if (ctl_remote_status == -1){
@@ -267,6 +268,7 @@ static void process_remote_control(int is_enable)
     }
     else if (REMOTE_CONTROL_DISABLE == is_enable)
         process_kill(REMOTE_CONTROL_NAME);
+fprintf(log_stream, "leave process_remote_control\n");
    
 }
 
@@ -470,9 +472,6 @@ static int process_remote_control_thread(char *ptr)
             fprintf(log_stream, "INFO:disable remote control successful\n");
             g_remote_control_flag = REMOTE_CONTROL_DISABLE;
         }
-        if (running == 0){
-            break;
-        }
         sleep(10);
     }
     return 0;
@@ -514,9 +513,6 @@ static int process_data_receive(char *ptr)
         max_fd  = g_yinka_daemon_sock;
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
-        if (running == 0){
-            break;
-        }
         nfound = select(max_fd + 1, &set, (fd_set *)0, (fd_set *)0, &timeout);
         if(nfound  < 0) {
             fprintf(log_stream, "ERROR: select error!\n");
