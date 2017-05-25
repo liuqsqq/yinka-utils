@@ -250,6 +250,22 @@ static void process_restart(char *program_name, char *cmdline)
 	}
 }
 
+static void process_reboot_system()
+{
+	pid_t reboot_status;
+    
+
+    reboot_status = system(REBOOT_SYSTEM);
+    
+	if (reboot_status == -1){
+		fprintf(log_stream, "ERROR: execute %s failed\n", REBOOT_SYSTEM);
+	}
+	else{
+		if(WEXITSTATUS(reboot_status) != 0){
+			fprintf(log_stream, "ERROR: execute failed %d\n", WEXITSTATUS(reboot_status));
+		}
+	}
+}
 
 static void process_remote_control(int is_enable)
 {
@@ -394,7 +410,10 @@ static void process_monitor()
             g_daemon_config->prog_list[i].safe_restart = false;
             continue;
         }
-        
+        if (MAX_REBOOT_FAILED_TIMES <= g_prog_state_list[i].reboot_failed_times){
+            fprintf(log_stream, "ERROR: program %s reboot failed so many times, maybe desktop is down,reboot system", g_daemon_config->prog_list[i].program_name);
+            process_reboot_system();
+        }
         /* try to check program is alive, if not ,try to reboot it */
         //fprintf(log_stream, "INFO: program_name = %s\n", g_daemon_config->prog_list[i].program_name);
 		
@@ -418,7 +437,11 @@ static void process_monitor()
 			fprintf(log_stream, "ERROR: can't get program %s's status, now try to restart\n", g_daemon_config->prog_list[i].program_name);
     		process_restart(g_daemon_config->prog_list[i].program_name, g_daemon_config->prog_list[i].cmdline);
 			g_prog_state_list[i].reboot_times++;
+            if ((time(NULL) - g_prog_state_list[i].uptime) == g_daemon_config->delay){
+                g_prog_state_list[i].reboot_failed_times++;
+            }
             g_prog_state_list[i].uptime = time(NULL);
+            
 		}
     }
 }

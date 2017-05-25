@@ -54,6 +54,8 @@
 #define XINPUT_DEFAULT_ENABLE_TIME (10)
 #define REMOTE_CONTROL_DEFAULT_ENABLE_TIME (15)
 
+#define MAX_REBOOT_FAILED_TIMES    (6)
+
 
 
 #define DEFAULT_CONF_FILE_PATH      "/etc/yinkad.conf"
@@ -69,6 +71,8 @@ char *prog_names[MAX_DAMEON_PROGRAMS_NUMS]={
 
 #define REMOTE_CONTROL_CMDLINE ("setsid yinka-ngrok -config=/etc/ngrok.cfg start ssh")
 #define REMOTE_CONTROL_NAME ("yinka-ngrok")
+
+#define REBOOT_SYSTEM ("shutdown -r -t 1")
 
 
 typedef struct {
@@ -86,6 +90,7 @@ typedef struct {
     int reboot_times;
     int keepalive_failed_times; 
     int state;
+    int reboot_failed_times;
 }program_state_t;
 
 typedef struct {
