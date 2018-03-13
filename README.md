@@ -31,4 +31,4 @@
     make && sudo make install
 
 ## Build a debian package
-    dpkg-buildpackage -b
+    dpkg-buildpackage -b -us
